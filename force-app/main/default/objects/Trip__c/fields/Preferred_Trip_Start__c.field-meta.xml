@@ -3,7 +3,7 @@
     <fullName>Preferred_Trip_Start__c</fullName>
     <externalId>false</externalId>
     <label>Preferred Trip Start</label>
-    <required>false</required>
+    <required>true</required>
     <trackTrending>false</trackTrending>
     <type>Date</type>
 </CustomField>

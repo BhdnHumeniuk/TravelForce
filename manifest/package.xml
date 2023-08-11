@@ -48,6 +48,12 @@
 		<name>CustomTab</name>
 	</types>
 	<types>
+		<members>TravelForce</members>
+		<members>TravelForce_UtilityBar</members>
+		<members>Trip_Record_Page</members>
+		<name>FlexiPage</name>
+	</types>
+	<types>
 		<members>*</members>
 		<name>LightningComponentBundle</name>
 	</types>
