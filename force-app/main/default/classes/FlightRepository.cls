@@ -4,9 +4,28 @@ public with sharing class FlightRepository {
     DateTime endOfDay = DateTime.newInstance(preferredDate, Time.newInstance(23, 59, 59, 999));
 
     return [
-      SELECT Id, Flight_Number__c, Start__c
+      SELECT Id, Name, Flight_Number__c, Start__c
       FROM Flight__c
-      WHERE Start__c >= :startOfDay AND Start__c <= :endOfDay AND Id NOT IN (SELECT Flight__c FROM Ticket__c WHERE Contact__c = NULL) AND Name LIKE :('%' + keyword + '%')
+      WHERE Start__c >= :startOfDay AND Start__c <= :endOfDay AND Id IN (SELECT Flight__c FROM Ticket__c WHERE Contact__c = NULL) AND Name LIKE :('%' + keyword + '%')
     ];
+  }
+
+  public static void bookFlightForTrip(Id tripId, Id flightId) {
+    Trip__c trip = [SELECT Id, Flight__c, Contact__c FROM Trip__c WHERE Id = :tripId];
+    Flight__c flight = [SELECT Id, Name, Flight_Number__c FROM Flight__c WHERE Id = :flightId];
+
+    if (trip != null && flight != null) {
+      List<Ticket__c> availableTickets = [SELECT Id, Contact__c FROM Ticket__c WHERE Flight__c = :flightId AND Contact__c = NULL LIMIT 1];
+
+      if (!availableTickets.isEmpty()) {
+        Ticket__c ticket = availableTickets[0];
+        ticket.Contact__c = trip.Contact__c;
+        update ticket;
+
+        trip.Flight__c = flightId;
+        trip.Status__c = 'Flight booked';
+        update trip;
+      }
+    }
   }
 }
