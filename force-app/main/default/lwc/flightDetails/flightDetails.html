@@ -1,5 +1,5 @@
 <template>
-    <template if:true={flightDetails}>
+    <template if:true={showComponent}>
         <lightning-card title="Flight Details" icon-name="custom:custom19">
             <div class="slds-grid slds-gutters">
                 <div class="slds-col">
@@ -19,5 +19,8 @@
                 <lightning-button label="Cancel Booking" title="Cancel Booking" onclick={handleCancelBookingFlight}></lightning-button>
             </div>
         </lightning-card>
+        <div if:true={isLoading} class="slds-var-m-vertical_medium">
+            <lightning-spinner alternative-text="loading" size="large"></lightning-spinner>
+        </div>
     </template>
 </template>

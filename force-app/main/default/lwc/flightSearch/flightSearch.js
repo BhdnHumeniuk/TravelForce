@@ -1,7 +1,11 @@
 import { LightningElement, api, wire } from 'lwc';
-import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
+import { refreshApex } from '@salesforce/apex';
 import getAvailableFlightsWithKeyword from '@salesforce/apex/FlightController.getAvailableFlightsWithKeyword';
 import bookFlight from '@salesforce/apex/FlightController.bookFlight';
+
+import { publish, subscribe, MessageContext } from 'lightning/messageService';
+import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
+import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
 const columns = [
     { label: 'Flight Name', fieldName: 'Name', type: 'text', sortable: true },
@@ -24,8 +28,16 @@ export default class FlightSearch extends LightningElement {
     currentPage = 1;
     visibleFlights = [];
 
+    @wire(MessageContext)
+    messageContext;
+
+    connectedCallback() {
+        this.subscribeToMessageChannel();
+    }
+
     @wire(getAvailableFlightsWithKeyword, { recordId: '$recordId', searchKeyword: '$searchKeyword' })
     wiredFlights(result) {
+        this.wiredFlightsResult = result;
         const { data, error } = result;
         if (data) {
             this.flights = data;
@@ -36,15 +48,19 @@ export default class FlightSearch extends LightningElement {
     }
 
     handleFlightSelect(event) {
+        this.isLoading = true;
         const selectedFlightId = event.detail.row.Id;
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
         .then(() => {
             showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
+            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+            refreshApex(this.wiredFlightsResult);
         })
         .catch(error => {
             showErrorMessage('Error', 'Failed to book the flight to the trip.');
             console.error('Error booking flight:', error);
         })
+        .finally(() => (this.isLoading = false));
     }
 
     handleSearch(event) {
@@ -100,5 +116,17 @@ export default class FlightSearch extends LightningElement {
         this.itemsPerPage = parseInt(newRecordSize, 10);
         this.currentPage = 1;
         this.updatePagination();
+    }
+
+    subscribeToMessageChannel() {
+        this.subscription = subscribe(
+            this.messageContext,
+            MESSAGE_CHANNEL,
+            (message) => {
+                if (message.type === 'FlightBookingCancel') {
+                    refreshApex(this.wiredFlightsResult);
+                }
+            }
+        );
     }
 }
