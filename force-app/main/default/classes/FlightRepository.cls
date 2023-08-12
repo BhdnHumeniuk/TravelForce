@@ -34,4 +34,30 @@ public with sharing class FlightRepository {
       throw new AuraHandledException('Invalid trip or flight data for booking.');
     }
   }
+
+  public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
+    FlightDetailsWrapper result = new FlightDetailsWrapper();
+
+    Trip__c trip = [SELECT Id, Flight__c, Status__c, Contact__c FROM Trip__c WHERE Id = :tripId];
+    if (trip != null) {
+      if (trip.Flight__c != null) {
+        Flight__c flight = [SELECT Id, Name, Flight_Number__c, Start__c FROM Flight__c WHERE Id = :trip.Flight__c];
+        if (flight != null) {
+          result.flightNumber = flight.Flight_Number__c;
+          result.flightStart = String.valueOf(flight.Start__c);
+        }
+      }
+
+      if (trip.Contact__c != null) {
+        List<Ticket__c> tickets = [SELECT Id, Name, Ticket_Number__c FROM Ticket__c WHERE Flight__c = :trip.Flight__c AND Contact__c = :trip.Contact__c];
+        if (!tickets.isEmpty()) {
+          Ticket__c ticket = tickets[0];
+          result.ticketName = ticket.Name;
+          result.ticketNumber = ticket.Ticket_Number__c;
+        }
+      }
+    }
+
+    return result;
+  }
 }

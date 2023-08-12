@@ -1,0 +1,23 @@
+<template>
+    <template if:true={flightDetails}>
+        <lightning-card title="Flight Details" icon-name="custom:custom19">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-var-m-around_medium slds-theme_shade"> 
+                        <p>Flight Number: {flightDetails.flightNumber}</p>
+                        <p>Flight Start: {flightDetails.flightStart}</p>
+                    </div>
+                </div>
+                <div class="slds-col">
+                    <div class="slds-var-m-around_medium slds-theme_shade"> 
+                        <p>Ticket Number: {flightDetails.ticketNumber}</p>
+                        <p>Ticket Name: {flightDetails.ticketName}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-var-p-horizontal_small slds-var-m-top_medium">
+                <lightning-button label="Cancel Booking" title="Cancel Booking" onclick={handleCancelBookingFlight}></lightning-button>
+            </div>
+        </lightning-card>
+    </template>
+</template>
