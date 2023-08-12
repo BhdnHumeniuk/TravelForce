@@ -37,7 +37,6 @@ export default class FlightSearch extends LightningElement {
 
     handleFlightSelect(event) {
         const selectedFlightId = event.detail.row.Id;
-        console.log(this.recordId + ' ' + selectedFlightId);
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
         .then(() => {
             showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
