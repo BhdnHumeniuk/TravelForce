@@ -1,8 +1,8 @@
 import { LightningElement, api, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import getFlightDetails from '@salesforce/apex/FlightController.getFlightDetails';
-import handleCancelBookingFlight from '@salesforce/apex/FlightController.handleCancelBookingFlight';
-import { showToast } from 'c/showMessageHelper';
+import cancelBookingFlight from '@salesforce/apex/FlightController.cancelBookingFlight';
+import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
 export default class FlightDetails extends LightningElement {
     @api recordId;
@@ -20,14 +20,14 @@ export default class FlightDetails extends LightningElement {
     }
 
     handleCancelBookingFlight() {
-        rejectFlight({ tripId: this.recordId })
+        cancelBookingFlight({ tripId: this.recordId })
             .then(() => {
-                showToast('Success', 'The flight has been successfully rejected to the trip.', 'success');
+                showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
                 return refreshApex(this.wiredFlightDetails);
             })
             .catch(error => {
+                showSuccessMessage('Error', 'Failed to reject the flight to the trip.');
                 console.error('Error rejecting flight:', error);
-                showToast('Error', 'Failed to reject the flight to the trip.', 'error');
             });
     }
 }

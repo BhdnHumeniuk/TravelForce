@@ -16,9 +16,9 @@ public with sharing class FlightController {
   }
 
   @AuraEnabled
-  public static void handleCancelBookingFlight(Id tripId) {
+  public static void cancelBookingFlight(Id tripId) {
     try {
-      TripRepository.rejectFlight(tripId);
+      TripRepository.cancelBookingFlightByTripId(tripId);
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }

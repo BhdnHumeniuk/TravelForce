@@ -4,7 +4,7 @@ public with sharing class TripRepository {
     return trip != null ? trip.Preferred_Trip_Start__c : null;
   }
 
-  public static void rejectFlight(Id tripId) {
+  public static void cancelBookingFlightByTripId(Id tripId) {
     Trip__c trip = [SELECT Id, Flight__c, Status__c, Contact__c FROM Trip__c WHERE Id = :tripId];
 
     if (trip != null && trip.Status__c == 'Flight booked') {
