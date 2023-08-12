@@ -57,5 +57,10 @@
 		<members>*</members>
 		<name>LightningComponentBundle</name>
 	</types>
+	<types>
+		<members>TravelForceAPI</members>
+		<members>TravelForceAPI_Inspector</members>
+		<name>RemoteSiteSetting</name>
+	</types>
 	<version>55.0</version>
 </Package>
