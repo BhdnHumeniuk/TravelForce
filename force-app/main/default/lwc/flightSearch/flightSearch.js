@@ -52,7 +52,6 @@ export default class FlightSearch extends LightningElement {
     wiredIsTripBookedFlight(result) {
         const { data, error } = result;
         if (data !== undefined) {
-            console.log(JSON.stringify(data));
             this.isTripBooked = data;
             this.updateFlightsBookingStatus(this.isTripBooked);
         } else if (error) {
@@ -61,7 +60,6 @@ export default class FlightSearch extends LightningElement {
     }
 
     updateFlightsBookingStatus(forceStatus) {
-        console.log('Set button: ' + forceStatus);
         this.flights = this.flights.map(flight => ({
             ...flight,
             isBooked: forceStatus !== undefined ? forceStatus : (this.isTripBooked || flight.isBooked || false)
