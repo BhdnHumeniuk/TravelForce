@@ -1,15 +1,18 @@
 public with sharing class FlightController {
   @AuraEnabled(cacheable=true)
   public static List<Flight__c> getAvailableFlightsWithKeyword(Id recordId, String searchKeyword) {
-    Date preferredDate = tripRepository.getPreferredDateByRecordId(recordId);
-    return FlightRepository.getFlightsByDateAndKeyword(preferredDate, searchKeyword);
+    Date preferredDate = tripRepository.getTripById(recordId).Preferred_Trip_Start__c;
+    if (preferredDate != null) {
+      return FlightRepository.getFlightsByDateAndKeyword(preferredDate, searchKeyword);
+    } else {
+      throw new AuraHandledException('Trip not found.');
+    }
   }
 
   @AuraEnabled
   public static void bookFlight(Id tripId, Id flightId) {
     try {
-      Ticket__c ticket = FlightRepository.bookFlightForTrip(tripId, flightId);
-      TicketController.sendMessageToExternalAPI(ticket.Id);
+      TicketController.sendMessageToExternalAPI(FlightRepository.bookFlightForTrip(tripId, flightId).Id);
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }

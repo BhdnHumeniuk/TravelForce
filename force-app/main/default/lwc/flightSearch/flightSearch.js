@@ -2,6 +2,7 @@ import { LightningElement, api, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import getAvailableFlightsWithKeyword from '@salesforce/apex/FlightController.getAvailableFlightsWithKeyword';
 import bookFlight from '@salesforce/apex/FlightController.bookFlight';
+import isTripBookedFlight from '@salesforce/apex/TripController.isTripBookedFlight';
 
 import { publish, subscribe, MessageContext } from 'lightning/messageService';
 import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
@@ -11,7 +12,7 @@ const columns = [
     { label: 'Flight Name', fieldName: 'Name', type: 'text', sortable: true },
     { label: 'Flight Number', fieldName: 'Flight_Number__c', type: 'text', sortable: true },
     { label: 'Start', fieldName: 'Start__c', type: 'date', sortable: true },
-    { label: 'Action', type: 'button', typeAttributes: { label: 'Book', name: 'book' } },
+    { label: 'Action', type: 'button', typeAttributes: { label: 'Book', name: 'book', disabled: { fieldName: 'isBooked' } } },
 ];
 
 export default class FlightSearch extends LightningElement {
@@ -40,11 +41,30 @@ export default class FlightSearch extends LightningElement {
         this.wiredFlightsResult = result;
         const { data, error } = result;
         if (data) {
-            this.flights = data;
+            this.flights = data.map(flight => ({ ...flight, isBooked: flight.isBooked || false }));
             this.updatePagination();
         } else if (error) {
             console.error('Error fetching available flights:', error);
         }
+    }
+
+    @wire(isTripBookedFlight, { tripId: '$recordId' })
+    wiredIsTripBookedFlight(result) {
+        const { data, error } = result;
+        if (data !== undefined) {
+            this.isTripBooked = data;
+            this.updateFlightsBookingStatus(this.isTripBooked);
+        } else if (error) {
+            console.error('Error fetching trip booking status:', error);
+        }
+    }
+
+    updateFlightsBookingStatus(forceStatus) {
+        this.flights = this.flights.map(flight => ({
+            ...flight,
+            isBooked: forceStatus !== undefined ? forceStatus : (this.isTripBooked || flight.isBooked || false)
+        }));
+        this.updatePagination();
     }
 
     handleFlightSelect(event) {
@@ -52,15 +72,18 @@ export default class FlightSearch extends LightningElement {
         const selectedFlightId = event.detail.row.Id;
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
         .then(() => {
-            showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
-            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
             refreshApex(this.wiredFlightsResult);
+            this.updateFlightsBookingStatus(true);
+            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+            showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
         })
         .catch(error => {
-            showErrorMessage('Error', 'Failed to book the flight to the trip.');
             console.error('Error booking flight:', error);
+            showErrorMessage('Error', 'Failed to book the flight to the trip.');
         })
-        .finally(() => (this.isLoading = false));
+        .finally(() => {
+            this.isLoading = false;
+        });
     }
 
     handleSearch(event) {
@@ -125,6 +148,7 @@ export default class FlightSearch extends LightningElement {
             (message) => {
                 if (message.type === 'FlightBookingCancel') {
                     refreshApex(this.wiredFlightsResult);
+                    this.updateFlightsBookingStatus(false);
                 }
             }
         );

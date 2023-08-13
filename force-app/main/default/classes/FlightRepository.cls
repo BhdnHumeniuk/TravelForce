@@ -10,21 +10,25 @@ public with sharing class FlightRepository {
     ];
   }
 
+  public static Flight__c getFlightById(Id flightId) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id = :flightId];
+  }
+
   public static Ticket__c bookFlightForTrip(Id tripId, Id flightId) {
-    Trip__c trip = [SELECT Id, Flight__c, Contact__c, Status__c FROM Trip__c WHERE Id = :tripId];
-    Flight__c flight = [SELECT Id, Name, Flight_Number__c FROM Flight__c WHERE Id = :flightId];
+    Trip__c trip = TripRepository.getTripById(tripId);
+    Flight__c flight = getFlightById(flightId);
 
     if (trip != null && flight != null && String.isBlank(trip.Flight__c) && trip.Status__c == 'Flight search') {
-      List<Ticket__c> availableTickets = [SELECT Id, Name, Contact__c, Contact__r.Name FROM Ticket__c WHERE Flight__c = :flightId AND Contact__c = NULL LIMIT 1];
+      List<Ticket__c> availableTickets = TicketRepository.getAvailableTicketsByFlightId(flightId);
 
       if (!availableTickets.isEmpty()) {
         Ticket__c ticket = availableTickets[0];
         ticket.Contact__c = trip.Contact__c;
-        update ticket;
+        TicketRepository.updateTicket(ticket);
 
         trip.Flight__c = flightId;
         trip.Status__c = 'Flight booked';
-        update trip;
+        TripRepository.updateTrip(trip);
 
         return ticket;
       } else {
@@ -38,10 +42,10 @@ public with sharing class FlightRepository {
   public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
     FlightDetailsWrapper result = new FlightDetailsWrapper();
 
-    Trip__c trip = [SELECT Id, Flight__c, Status__c, Contact__c FROM Trip__c WHERE Id = :tripId];
+    Trip__c trip = TripRepository.getTripById(tripId);
     if (trip != null) {
       if (trip.Flight__c != null) {
-        Flight__c flight = [SELECT Id, Name, Flight_Number__c, Start__c FROM Flight__c WHERE Id = :trip.Flight__c];
+        Flight__c flight = getFlightById(trip.Flight__c);
         if (flight != null) {
           result.flightNumber = flight.Flight_Number__c;
           result.flightStart = String.valueOf(flight.Start__c);
@@ -49,7 +53,7 @@ public with sharing class FlightRepository {
       }
 
       if (trip.Contact__c != null) {
-        List<Ticket__c> tickets = [SELECT Id, Name, Ticket_Number__c FROM Ticket__c WHERE Flight__c = :trip.Flight__c AND Contact__c = :trip.Contact__c];
+        List<Ticket__c> tickets = TicketRepository.getTicketsByFlightIdAndContactId(trip.Flight__c, trip.Contact__c);
         if (!tickets.isEmpty()) {
           Ticket__c ticket = tickets[0];
           result.ticketName = ticket.Name;
