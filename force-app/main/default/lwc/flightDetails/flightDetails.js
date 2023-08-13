@@ -12,7 +12,6 @@ export default class FlightDetails extends LightningElement {
 
     flightDetails;
 
-    showComponent = false;
     isLoading = false;
 
     @wire(MessageContext)
@@ -28,7 +27,6 @@ export default class FlightDetails extends LightningElement {
         const { data, error } = result;
         if (data && Object.keys(data).length !== 0) {
             this.flightDetails = data;
-            this.showComponent = true;
         } else if (error) {
             this.error = error;
             this.flightDetails = undefined;
@@ -39,15 +37,18 @@ export default class FlightDetails extends LightningElement {
         this.isLoading = true;
         cancelBookingFlight({ tripId: this.recordId })
             .then(() => {
-                showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
                 publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingCancel', payload: true});
-                this.showComponent = false;
+                refreshApex(this.wiredFlightDetailsResult);
+                this.flightDetails = undefined;
+                showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
             })
             .catch(error => {
-                showErrorMessage('Error', 'Failed to reject the flight to the trip.');
                 console.error('Error rejecting flight:', error);
+                showErrorMessage('Error', 'Failed to reject the flight to the trip.');
             })
-            .finally(() => (this.isLoading = false));
+            .finally(() => {
+                this.isLoading = false;
+            });
     }
 
     subscribeToMessageChannel() {
@@ -56,7 +57,6 @@ export default class FlightDetails extends LightningElement {
             MESSAGE_CHANNEL,
             (message) => {
                 if (message.type === 'FlightBookingSuccess') {
-                    this.showComponent = true;
                     refreshApex(this.wiredFlightDetailsResult);
                 }
             }

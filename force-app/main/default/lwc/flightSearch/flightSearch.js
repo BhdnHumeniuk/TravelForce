@@ -52,15 +52,17 @@ export default class FlightSearch extends LightningElement {
         const selectedFlightId = event.detail.row.Id;
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
         .then(() => {
-            showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
-            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
             refreshApex(this.wiredFlightsResult);
+            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+            showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
         })
         .catch(error => {
-            showErrorMessage('Error', 'Failed to book the flight to the trip.');
             console.error('Error booking flight:', error);
+            showErrorMessage('Error', 'Failed to book the flight to the trip.');
         })
-        .finally(() => (this.isLoading = false));
+        .finally(() => {
+            this.isLoading = false;
+        });
     }
 
     handleSearch(event) {
