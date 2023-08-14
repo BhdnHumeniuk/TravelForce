@@ -24,7 +24,6 @@ export default class FlightSearch extends LightningElement {
     sortDirection = 'asc';
     sortedBy;
     isLoading = false;
-    shouldDisplayComponent = false;
 
     itemsPerPage = 5;
     currentPage = 1;
@@ -44,10 +43,8 @@ export default class FlightSearch extends LightningElement {
         if (data) {
             this.flights = data.map(flight => ({ ...flight, isBooked: flight.isBooked || false }));
             this.updatePagination();
-            this.shouldDisplayComponent = this.flights.length > 0;
         } else if (error) {
             console.error('Error fetching available flights:', error);
-            this.shouldDisplayComponent = false;
         }
     }
 
@@ -58,6 +55,7 @@ export default class FlightSearch extends LightningElement {
         if (data !== undefined) {
             this.updateFlightsBookingStatus(data);
         } else if (error) {
+            refreshApex(this.wiredFlightsResult);
             this.updateFlightsBookingStatus(false);
             console.error('Error fetching trip booking status:', error);
         }
@@ -68,7 +66,6 @@ export default class FlightSearch extends LightningElement {
             ...flight,
             isBooked: forceStatus !== undefined ? forceStatus : (this.isTripBooked || flight.isBooked || false)
         }));
-        this.updatePagination();
     }
     
     handleFlightSelect(event) {
@@ -85,7 +82,7 @@ export default class FlightSearch extends LightningElement {
             })
             .catch(error => {
                 console.error('Error booking flight:', error);
-                showErrorMessage('Error', 'Failed to book the flight to the trip.');
+                showErrorMessage('Error', 'You have already booked this flight. Please press "Cancel Booking" and try again.');
             })
             .finally(() => {
                 this.isLoading = false;

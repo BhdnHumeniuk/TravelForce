@@ -1,6 +1,5 @@
 <template>
   <lightning-card title="Available Flights">
-      <template if:true={shouldDisplayComponent}>
           <div class="slds-m-around_medium">
               <lightning-input
                   label="Search"
@@ -34,9 +33,5 @@
           <div if:true={isLoading} class="slds-var-m-vertical_medium">
               <lightning-spinner alternative-text="loading" size="large"></lightning-spinner>
           </div>
-      </template>
-      <template if:false={shouldDisplayComponent}>
-          <p class="slds-m-around_medium">No available flights for the preferred date.</p>
-      </template>
   </lightning-card>
 </template>

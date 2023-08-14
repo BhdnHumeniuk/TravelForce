@@ -48,6 +48,7 @@ public with sharing class FlightRepository {
       if (trip.Flight__c != null) {
         Flight__c flight = [SELECT Id, Name, Flight_Number__c, Start__c FROM Flight__c WHERE Id = :trip.Flight__c];
         if (flight != null) {
+          result.flightId = flight.Id;
           result.flightNumber = flight.Flight_Number__c;
           result.flightStart = String.valueOf(flight.Start__c);
         }
@@ -57,6 +58,7 @@ public with sharing class FlightRepository {
         List<Ticket__c> tickets = [SELECT Id, Name, Ticket_Number__c FROM Ticket__c WHERE Flight__c = :trip.Flight__c AND Contact__c = :trip.Contact__c];
         if (!tickets.isEmpty()) {
           Ticket__c ticket = tickets[0];
+          result.ticketId = ticket.Id;
           result.ticketName = ticket.Name;
           result.ticketNumber = ticket.Ticket_Number__c;
         }
