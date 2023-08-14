@@ -24,6 +24,7 @@ export default class FlightSearch extends LightningElement {
     sortDirection = 'asc';
     sortedBy;
     isLoading = false;
+    shouldDisplayComponent = false;
 
     itemsPerPage = 5;
     currentPage = 1;
@@ -34,6 +35,7 @@ export default class FlightSearch extends LightningElement {
 
     connectedCallback() {
         this.subscribeToMessageChannel();
+        refreshApex(this.wiredIsTripBookedFlightResult);
     }
 
     @wire(getAvailableFlightsWithKeyword, { recordId: '$recordId', searchKeyword: '$searchKeyword' })
@@ -43,13 +45,16 @@ export default class FlightSearch extends LightningElement {
         if (data) {
             this.flights = data.map(flight => ({ ...flight, isBooked: flight.isBooked || false }));
             this.updatePagination();
+            this.shouldDisplayComponent = this.flights.length > 0;
         } else if (error) {
             console.error('Error fetching available flights:', error);
+            this.shouldDisplayComponent = false;
         }
     }
 
     @wire(isTripBookedFlight, { tripId: '$recordId' })
     wiredIsTripBookedFlight(result) {
+        this.wiredIsTripBookedFlightResult = result;
         const { data, error } = result;
         if (data !== undefined) {
             this.isTripBooked = data;
