@@ -54,4 +54,19 @@ public with sharing class TestDataFactory {
     update tickets;
     return [SELECT Id FROM Flight__c WHERE Id IN :flightIds];
   }
+
+  public static List<Trip__c> assignFlightsToTrips(List<Flight__c> flights, List<Trip__c> trips) {
+    List<Trip__c> tripsToUpdate = new List<Trip__c>();
+
+    for (Integer i = 0; i < trips.size(); i++) {
+      if (i < flights.size()) {
+        Trip__c trip = trips[i];
+        trip.Flight__c = flights[i].Id;
+        trip.Status__c = 'Flight booked';
+        tripsToUpdate.add(trip);
+      }
+    }
+    update tripsToUpdate;
+    return [SELECT Id FROM Trip__c WHERE Id IN :tripsToUpdate];
+  }
 }

@@ -5,41 +5,16 @@ public with sharing class TripRepository {
 
   public static void cancelBookingFlightByTripId(Id tripId) {
     try {
-      Set<Id> tripIds = new Set<Id>{ tripId };
-      List<Trip__c> trips = TripRepository.getTripsByIds(tripIds);
+      Trip__c trip = getAndValidateTrip(tripId);
+      Flight__c bookedFlight = getAndValidateBookedFlight(trip.Flight__c);
 
       List<Trip__c> tripsToUpdate = new List<Trip__c>();
       List<Ticket__c> ticketsToUpdate = new List<Ticket__c>();
 
-      for (Trip__c trip : trips) {
-        if (trip != null && trip.Status__c == 'Flight booked') {
-          Set<Id> flightIds = new Set<Id>{ trip.Flight__c };
-          List<Flight__c> bookedFlights = FlightRepository.getFlightsByIds(flightIds);
-
-          for (Flight__c bookedFlight : bookedFlights) {
-            if (bookedFlight != null) {
-              trip.Flight__c = null;
-              trip.Status__c = 'Flight search';
-              tripsToUpdate.add(trip);
-
-              List<Ticket__c> bookedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
-              if (!bookedTickets.isEmpty()) {
-                for (Ticket__c ticket : bookedTickets) {
-                  ticket.Contact__c = null;
-                  ticketsToUpdate.add(ticket);
-                }
-              }
-            } else {
-              throw new AuraHandledException('Invalid booked flight data.');
-            }
-          }
-        } else {
-          throw new AuraHandledException('Invalid trip data for flight rejection.');
-        }
-      }
+      cancelTripBooking(trip, tripsToUpdate, bookedFlight, ticketsToUpdate);
 
       if (!tripsToUpdate.isEmpty()) {
-        TripRepository.updateTrips(tripsToUpdate);
+        updateTrips(tripsToUpdate);
       }
 
       if (!ticketsToUpdate.isEmpty()) {
@@ -47,6 +22,34 @@ public with sharing class TripRepository {
       }
     } catch (Exception e) {
       throw new AuraHandledException('An error occurred: ' + e.getMessage());
+    }
+  }
+
+  private static Trip__c getAndValidateTrip(Id tripId) {
+    Trip__c trip = TripRepository.getTripsByIds(new Set<Id>{ tripId })[0];
+    if (trip == null || trip.Status__c != 'Flight booked') {
+      throw new AuraHandledException('Invalid trip data for flight rejection.');
+    }
+    return trip;
+  }
+
+  private static Flight__c getAndValidateBookedFlight(Id flightId) {
+    Flight__c bookedFlight = FlightRepository.getFlightsByIds(new Set<Id>{ flightId })[0];
+    if (bookedFlight == null) {
+      throw new AuraHandledException('Invalid booked flight data.');
+    }
+    return bookedFlight;
+  }
+
+  private static void cancelTripBooking(Trip__c trip, List<Trip__c> tripsToUpdate, Flight__c bookedFlight, List<Ticket__c> ticketsToUpdate) {
+    trip.Flight__c = null;
+    trip.Status__c = 'Flight search';
+    tripsToUpdate.add(trip);
+
+    List<Ticket__c> bookedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
+    for (Ticket__c ticket : bookedTickets) {
+      ticket.Contact__c = null;
+      ticketsToUpdate.add(ticket);
     }
   }
 

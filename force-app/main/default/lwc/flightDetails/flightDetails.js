@@ -23,7 +23,6 @@ export default class FlightDetails extends LightningElement {
 
     @wire(getFlightDetails, { tripId: '$recordId' })
     wiredFlightDetails(result) {
-        console.log('RESULT: ' + JSON.stringify(result));
         this.wiredFlightDetailsResult = result;
         const { data, error } = result;
         if (data && Object.keys(data).length !== 0) {
