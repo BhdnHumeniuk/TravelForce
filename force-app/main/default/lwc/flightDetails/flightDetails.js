@@ -23,7 +23,6 @@ export default class FlightDetails extends LightningElement {
 
     @wire(getFlightDetails, { tripId: '$recordId' })
     wiredFlightDetails(result) {
-        console.log('Wire: ' + JSON.stringify(result));
         this.wiredFlightDetailsResult = result;
         const { data, error } = result;
         if (data && Object.keys(data).length !== 0) {
@@ -60,7 +59,6 @@ export default class FlightDetails extends LightningElement {
             MESSAGE_CHANNEL,
             (message) => {
                 if (message.type === 'FlightBookingSuccess') {
-                    this.flightDetails = {};
                     refreshApex(this.wiredFlightDetailsResult);
                 }
             }
