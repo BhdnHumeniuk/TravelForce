@@ -1,5 +1,5 @@
 @IsTest
-private class TicketControllerTest {
+public with sharing class TicketCalloutServiceTest {
   @TestSetup
   static void setupTestData() {
     List<Contact> contacts = TestDataFactory.createContacts(1);
@@ -15,7 +15,7 @@ private class TicketControllerTest {
     Set<Id> ticketIds = new Set<Id>{ tickets[0].Id };
 
     Test.startTest();
-    TicketController.sendMessageToExternalAPI(ticketIds);
+    TicketCalloutService.sendMessageToExternalAPI(ticketIds);
     Test.stopTest();
   }
 }

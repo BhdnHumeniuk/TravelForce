@@ -1,12 +1,17 @@
-public with sharing class TicketController {
+public with sharing class TicketCalloutService {
   @future(callout=true)
   public static void sendMessageToExternalAPI(Set<Id> ticketIds) {
     List<Ticket__c> tickets = TicketRepository.getTicketsByIds(ticketIds);
 
     if (tickets != null) {
-      String API_BASE_URL = 'https://private-1ce70-testassign.apiary-mock.com'; //Its endpoint was specified in the task description
-      String API_BASE_URL_INSPECTOR = 'https://private-anon-ee2aae1b9f-testassign.apiary-mock.com'; //Its endpoint I got from documentation in "Inspector" section
-      String endpointUrl = API_BASE_URL_INSPECTOR + '/ticket';
+      Confirmation_ticket_setting__c customSetting = Confirmation_ticket_setting__c.getInstance();
+
+      String endpointUrl;
+      if (customSetting != null && !String.isBlank(customSetting.URL__c)) {
+        endpointUrl = customSetting.URL__c;
+      } else {
+        endpointUrl = 'https://private-1ce70-testassign.apiary-mock.com ' + '/ticket';
+      }
 
       for (Ticket__c ticket : tickets) {
         Map<String, Object> requestBodyMap = new Map<String, Object>();

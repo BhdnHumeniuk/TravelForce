@@ -18,7 +18,7 @@ public with sharing class FlightController {
 
       if (bookedTicket != null) {
         Set<Id> ticketIds = new Set<Id>{ bookedTicket.Id };
-        TicketController.sendMessageToExternalAPI(ticketIds);
+        TicketCalloutService.sendMessageToExternalAPI(ticketIds);
       }
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
