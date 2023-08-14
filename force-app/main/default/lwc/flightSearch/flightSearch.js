@@ -78,8 +78,6 @@ export default class FlightSearch extends LightningElement {
             .then(() => {
                 this.updateFlightsBookingStatus(true);
                 refreshApex(this.wiredFlightsResult);
-            })
-            .then(() => {
                 publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
                 showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
             })

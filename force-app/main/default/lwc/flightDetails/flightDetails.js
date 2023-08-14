@@ -39,8 +39,6 @@ export default class FlightDetails extends LightningElement {
             .then(() => {
                 refreshApex(this.wiredFlightDetailsResult);
                 this.flightDetails = undefined;
-            })
-            .then(() => {
                 publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingCancel', payload: true});
                 showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
             })
