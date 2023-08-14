@@ -23,6 +23,7 @@ export default class FlightDetails extends LightningElement {
 
     @wire(getFlightDetails, { tripId: '$recordId' })
     wiredFlightDetails(result) {
+        console.log('Wire: ' + JSON.stringify(result));
         this.wiredFlightDetailsResult = result;
         const { data, error } = result;
         if (data && Object.keys(data).length !== 0) {
@@ -37,9 +38,11 @@ export default class FlightDetails extends LightningElement {
         this.isLoading = true;
         cancelBookingFlight({ tripId: this.recordId })
             .then(() => {
-                publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingCancel', payload: true});
                 refreshApex(this.wiredFlightDetailsResult);
                 this.flightDetails = undefined;
+            })
+            .then(() => {
+                publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingCancel', payload: true});
                 showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
             })
             .catch(error => {
@@ -57,6 +60,7 @@ export default class FlightDetails extends LightningElement {
             MESSAGE_CHANNEL,
             (message) => {
                 if (message.type === 'FlightBookingSuccess') {
+                    this.flightDetails = {};
                     refreshApex(this.wiredFlightDetailsResult);
                 }
             }

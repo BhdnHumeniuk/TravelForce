@@ -34,8 +34,7 @@ export default class FlightSearch extends LightningElement {
     messageContext;
 
     connectedCallback() {
-        this.subscribeToMessageChannel();
-        refreshApex(this.wiredIsTripBookedFlightResult);
+        this.subscribeToMessageChannel();        
     }
 
     @wire(getAvailableFlightsWithKeyword, { recordId: '$recordId', searchKeyword: '$searchKeyword' })
@@ -57,12 +56,12 @@ export default class FlightSearch extends LightningElement {
         this.wiredIsTripBookedFlightResult = result;
         const { data, error } = result;
         if (data !== undefined) {
-            this.isTripBooked = data;
-            this.updateFlightsBookingStatus(this.isTripBooked);
+            this.updateFlightsBookingStatus(data);
         } else if (error) {
+            this.updateFlightsBookingStatus(false);
             console.error('Error fetching trip booking status:', error);
         }
-    }
+    }    
 
     updateFlightsBookingStatus(forceStatus) {
         this.flights = this.flights.map(flight => ({
@@ -71,24 +70,26 @@ export default class FlightSearch extends LightningElement {
         }));
         this.updatePagination();
     }
-
+    
     handleFlightSelect(event) {
         this.isLoading = true;
         const selectedFlightId = event.detail.row.Id;
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
-        .then(() => {
-            refreshApex(this.wiredFlightsResult);
-            this.updateFlightsBookingStatus(true);
-            publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
-            showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
-        })
-        .catch(error => {
-            console.error('Error booking flight:', error);
-            showErrorMessage('Error', 'Failed to book the flight to the trip.');
-        })
-        .finally(() => {
-            this.isLoading = false;
-        });
+            .then(() => {
+                this.updateFlightsBookingStatus(true);
+                refreshApex(this.wiredFlightsResult);
+            })
+            .then(() => {
+                publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+                showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
+            })
+            .catch(error => {
+                console.error('Error booking flight:', error);
+                showErrorMessage('Error', 'Failed to book the flight to the trip.');
+            })
+            .finally(() => {
+                this.isLoading = false;
+            });
     }
 
     handleSearch(event) {
