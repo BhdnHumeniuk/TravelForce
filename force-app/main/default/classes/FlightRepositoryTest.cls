@@ -1,85 +1,101 @@
 @IsTest
 private class FlightRepositoryTest {
-  //   @TestSetup
-  //   static void setupTestData() {
-  //     TestDataFactory.createTestData(1000);
+  @TestSetup
+  static void setupTestData() {
+    List<Flight__c> flights = TestDataFactory.createFlights(10);
+    List<Contact> contacts = TestDataFactory.createContacts(10);
+    List<Trip__c> trips = TestDataFactory.createTrips(10, contacts);
+    List<Ticket__c> tickets = TestDataFactory.createTickets(10, flights);
+    TestDataFactory.assignFlightsToTrips(flights, trips);
+    TestDataFactory.assignContactsToTickets(tickets, contacts);
+  }
+
+  @IsTest
+  static void testGetFlightsByDateAndKeyword() {
+    List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
+    List<Ticket__c> freeTickets = TestDataFactory.createTickets(1, freeFlights);
+    String keyword = 'FL';
+    Date preferredDate = Date.today();
+
+    Test.startTest();
+    List<Flight__c> flights = FlightRepository.getFlightsByDateAndKeyword(preferredDate, keyword);
+    Test.stopTest();
+
+    System.assertEquals(1, flights.size());
+    for (Flight__c flight : flights) {
+      System.assertEquals(preferredDate, flight.Start__c.date());
+      System.assert(flight.Name.contains(keyword));
+    }
+  }
+
+  @IsTest
+  static void testBookFlightForTrip_Success() {
+    List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
+    List<Contact> newContacts = TestDataFactory.createContacts(1);
+    Ticket__c freeTickets = TestDataFactory.createTickets(1, freeFlights)[0];
+    Trip__c newTrip = TestDataFactory.createTrips(1, newContacts)[0];
+
+    Test.startTest();
+    Ticket__c bookedTicket = FlightRepository.bookFlightForTrip(newTrip.Id, freeFlights[0].Id);
+    Test.stopTest();
+
+    System.assertNotEquals(null, bookedTicket);
+    System.assertEquals(newTrip.Contact__c, bookedTicket.Contact__c);
+
+    Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :newTrip.Id];
+    System.assertEquals(freeFlights[0].Id, updatedTrip.Flight__c);
+    System.assertEquals('Flight booked', updatedTrip.Status__c);
+  }
+
+  // @IsTest
+  // static void testBookFlightForTrip_InvalidTrip() {
+  //   Trip__c trip = [SELECT Id FROM Trip__c WHERE Status__c != 'Flight search' LIMIT 1];
+  //   Flight__c flight = [SELECT Id FROM Flight__c LIMIT 1];
+
+  //   Test.startTest();
+  //   try {
+  //     FlightRepository.bookFlightForTrip(trip.Id, flight.Id);
+  //     System.assert(false, 'Exception should have been thrown');
+  //   } catch (AuraHandledException e) {
+  //     System.assertEquals('Invalid trip or flight data for booking.', e.getMessage());
   //   }
-
-  //   @IsTest
-  //   static void testGetFlightsByDateAndKeyword() {
-  //     Date preferredDate = Date.today();
-  //     String keyword = 'FL';
-
-  //     Test.startTest();
-  //     List<Flight__c> flights = FlightRepository.getFlightsByDateAndKeyword(preferredDate, keyword);
-  //     Test.stopTest();
-
-  //     System.assertEquals(1000, flights.size(), 'Incorrect number of flights returned.');
-
-  //     for (Flight__c flight : flights) {
-  //       // Perform assertions on each flight record as needed
-  //       System.assertEquals('FL', flight.Flight_Number__c.substring(0, 2), 'Incorrect flight number format.');
-  //       System.assertEquals(preferredDate, flight.Start__c.date(), 'Incorrect flight start date.');
-  //     }
-  //   }
-
-  //   @IsTest
-  //   static void testGetFlightById() {
-  //     List<Flight__c> flights = [SELECT Id FROM Flight__c LIMIT 1];
-  //     System.assertNotEquals(0, flights.size(), 'No flights found for testing.');
-
-  //     Test.startTest();
-  //     Flight__c flight = FlightRepository.getFlightById(flights[0].Id);
-  //     Test.stopTest();
-
-  //     System.assertNotEquals(null, flight, 'Flight record not retrieved.');
-  //     System.assertEquals(flights[0].Id, flight.Id, 'Incorrect flight record retrieved.');
-  //   }
-
-  //   @IsTest
-  //   static void testBookFlightForTrip() {
-  //     List<Trip__c> trips = [SELECT Id, Contact__c, Status__c FROM Trip__c LIMIT 1];
-  //     List<Flight__c> flights = [SELECT Id FROM Flight__c WHERE Id NOT IN (SELECT Flight__c FROM Ticket__c WHERE Contact__c != NULL) LIMIT 1];
-
-  //     System.assertNotEquals(0, trips.size(), 'No trips found for testing.');
-  //     System.assertNotEquals(0, flights.size(), 'No available flights found for testing.');
-
-  //     Trip__c trip = trips[0];
-  //     Flight__c flight = flights[0];
-
-  //     Test.startTest();
-  //     Ticket__c bookedTicket = FlightRepository.bookFlightForTrip(trip.Id, flight.Id);
-  //     Test.stopTest();
-
-  //     System.assertNotEquals(null, bookedTicket, 'Ticket not booked.');
-  //     System.assertEquals(trip.Contact__c, bookedTicket.Contact__c, 'Incorrect contact on booked ticket.');
-  //     System.assertEquals('Flight booked', trip.Status__c, 'Trip status not updated to "Flight booked".');
-  //     System.assertEquals(flight.Id, trip.Flight__c, 'Incorrect flight on trip.');
-
-  //     // Ensure the booked ticket is no longer available
-  //     List<Ticket__c> availableTickets = [SELECT Id FROM Ticket__c WHERE Flight__c = :flight.Id AND Contact__c = NULL];
-  //     System.assertEquals(0, availableTickets.size(), 'Available ticket still found after booking.');
-  //   }
-
-  //   // @IsTest
-  //   // static void testGetFlightDetailsByTripId() {
-  //   //   List<Trip__c> trips = [SELECT Id, Contact__c, Flight__c FROM Trip__c LIMIT 1];
-  //   //   System.assertNotEquals(0, trips.size(), 'No trips found for testing.');
-
-  //   //   Trip__c trip = trips[0];
-
-  //   //   Test.startTest();
-  //   //   FlightRepository.FlightDetailsWrapper flightDetails = FlightRepository.getFlightDetailsByTripId(trip.Id);
-  //   //   Test.stopTest();
-
-  //   //   if (trip.Flight__c != null) {
-  //   //     Flight__c flight = [SELECT Flight_Number__c, Start__c FROM Flight__c WHERE Id = :trip.Flight__c LIMIT 1];
-
-  //   //     if (flight != null) {
-  //   //       System.assertEquals(flight.Flight_Number__c, flightDetails.flightNumber, 'Incorrect flight number.');
-  //   //       System.assertEquals(String.valueOf(flight.Start__c), flightDetails.flightStart, 'Incorrect flight start date.');
-  //   //     }
-  //   //   }
-  //   // }
+  //   Test.stopTest();
   // }
+
+  // @IsTest
+  // static void testBookFlightForTrip_NoAvailableTickets() {
+  //   Trip__c trip = [SELECT Id, Contact__c, Status__c FROM Trip__c WHERE Status__c = 'Flight search' LIMIT 1];
+  //   Flight__c flight = [SELECT Id FROM Flight__c LIMIT 1];
+
+  //   List<Ticket__c> tickets = [SELECT Id FROM Ticket__c WHERE Flight__c = :flight.Id];
+  //   for (Ticket__c ticket : tickets) {
+  //     ticket.Contact__c = trip.Contact__c;
+  //   }
+  //   update tickets;
+
+  //   Test.startTest();
+  //   try {
+  //     FlightRepository.bookFlightForTrip(trip.Id, flight.Id);
+  //     System.assert(false, 'Exception should have been thrown');
+  //   } catch (AuraHandledException e) {
+  //     System.assertEquals('No available tickets for booking.', e.getMessage());
+  //   }
+  //   Test.stopTest();
+  // }
+
+  @IsTest
+  static void testGetFlightDetailsByTripId() {
+    Trip__c trip = [SELECT Id, Flight__c, Contact__c FROM Trip__c LIMIT 1];
+    Flight__c flight = [SELECT Id, Flight_Number__c, Start__c FROM Flight__c WHERE Id = :trip.Flight__c LIMIT 1];
+    Ticket__c ticket = [SELECT Id, Name, Ticket_Number__c FROM Ticket__c WHERE Flight__c = :flight.Id AND Contact__c = :trip.Contact__c LIMIT 1];
+
+    Test.startTest();
+    FlightDetailsWrapper result = FlightRepository.getFlightDetailsByTripId(trip.Id);
+    Test.stopTest();
+
+    System.assertEquals(flight.Flight_Number__c, result.flightNumber);
+    System.assertEquals(String.valueOf(flight.Start__c), result.flightStart);
+    System.assertEquals(ticket.Name, result.ticketName);
+    System.assertEquals(ticket.Ticket_Number__c, result.ticketNumber);
+  }
 }

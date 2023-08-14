@@ -43,27 +43,21 @@ public with sharing class FlightRepository {
   public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
     FlightDetailsWrapper result = new FlightDetailsWrapper();
     Set<Id> tripIds = new Set<Id>{ tripId };
-    List<Trip__c> trips = TripRepository.getTripsByIds(tripIds);
-    for (Trip__c trip : trips) {
-      if (trip != null) {
-        if (trip.Flight__c != null) {
-          Set<Id> flightIds = new Set<Id>{ trip.Flight__c };
-          List<Flight__c> flights = getFlightsByIds(flightIds);
-          for (Flight__c flight : flights) {
-            if (flight != null) {
-              result.flightNumber = flight.Flight_Number__c;
-              result.flightStart = String.valueOf(flight.Start__c);
-            }
-          }
+    Trip__c trip = TripRepository.getTripsByIds(tripIds)[0];
+    if (trip != null) {
+      if (trip.Flight__c != null) {
+        Set<Id> flightIds = new Set<Id>{ trip.Flight__c };
+        Flight__c flight = getFlightsByIds(flightIds)[0];
+        if (flight != null) {
+          result.flightNumber = flight.Flight_Number__c;
+          result.flightStart = String.valueOf(flight.Start__c);
         }
-        if (trip.Contact__c != null) {
-          List<Ticket__c> tickets = TicketRepository.getTicketsByFlightIdAndContactId(trip.Flight__c, trip.Contact__c);
-          if (!tickets.isEmpty()) {
-            for (Ticket__c ticket : tickets) {
-              result.ticketName = ticket.Name;
-              result.ticketNumber = ticket.Ticket_Number__c;
-            }
-          }
+      }
+      if (trip.Contact__c != null) {
+        Ticket__c ticket = TicketRepository.getTicketsByFlightIdAndContactId(trip.Flight__c, trip.Contact__c)[0];
+        if (ticket != null) {
+          result.ticketName = ticket.Name;
+          result.ticketNumber = ticket.Ticket_Number__c;
         }
       }
     }
