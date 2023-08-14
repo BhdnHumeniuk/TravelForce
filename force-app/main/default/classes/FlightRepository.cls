@@ -10,27 +10,28 @@ public with sharing class FlightRepository {
     ];
   }
 
-  public static Flight__c getFlightById(Id flightId) {
-    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id = :flightId];
+  public static List<Flight__c> getFlightsByIds(Set<Id> flightId) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id IN :flightId];
   }
 
   public static Ticket__c bookFlightForTrip(Id tripId, Id flightId) {
-    Trip__c trip = TripRepository.getTripById(tripId);
-    Flight__c flight = getFlightById(flightId);
+    Set<Id> tripIds = new Set<Id>{ tripId };
+    Set<Id> flights = new Set<Id>{ flightId };
+    Trip__c trip = TripRepository.getTripsByIds(tripIds)[0];
+    Flight__c flight = getFlightsByIds(flights)[0];
 
     if (trip != null && flight != null && String.isBlank(trip.Flight__c) && trip.Status__c == 'Flight search') {
-      List<Ticket__c> availableTickets = TicketRepository.getAvailableTicketsByFlightId(flightId);
+      Ticket__c availableTicket = TicketRepository.getAvailableTicketsByFlightId(flightId)[0];
 
-      if (!availableTickets.isEmpty()) {
-        Ticket__c ticket = availableTickets[0];
-        ticket.Contact__c = trip.Contact__c;
-        TicketRepository.updateTicket(ticket);
+      if (availableTicket != null) {
+        availableTicket.Contact__c = trip.Contact__c;
+        TicketRepository.updateTickets(new List<Ticket__c>{ availableTicket });
 
         trip.Flight__c = flightId;
         trip.Status__c = 'Flight booked';
-        TripRepository.updateTrip(trip);
+        TripRepository.updateTrips(new List<Trip__c>{ trip });
 
-        return ticket;
+        return availableTicket;
       } else {
         throw new AuraHandledException('No available tickets for booking.');
       }
@@ -41,23 +42,28 @@ public with sharing class FlightRepository {
 
   public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
     FlightDetailsWrapper result = new FlightDetailsWrapper();
-
-    Trip__c trip = TripRepository.getTripById(tripId);
-    if (trip != null) {
-      if (trip.Flight__c != null) {
-        Flight__c flight = getFlightById(trip.Flight__c);
-        if (flight != null) {
-          result.flightNumber = flight.Flight_Number__c;
-          result.flightStart = String.valueOf(flight.Start__c);
+    Set<Id> tripIds = new Set<Id>{ tripId };
+    List<Trip__c> trips = TripRepository.getTripsByIds(tripIds);
+    for (Trip__c trip : trips) {
+      if (trip != null) {
+        if (trip.Flight__c != null) {
+          Set<Id> flightIds = new Set<Id>{ trip.Flight__c };
+          List<Flight__c> flights = getFlightsByIds(flightIds);
+          for (Flight__c flight : flights) {
+            if (flight != null) {
+              result.flightNumber = flight.Flight_Number__c;
+              result.flightStart = String.valueOf(flight.Start__c);
+            }
+          }
         }
-      }
-
-      if (trip.Contact__c != null) {
-        List<Ticket__c> tickets = TicketRepository.getTicketsByFlightIdAndContactId(trip.Flight__c, trip.Contact__c);
-        if (!tickets.isEmpty()) {
-          Ticket__c ticket = tickets[0];
-          result.ticketName = ticket.Name;
-          result.ticketNumber = ticket.Ticket_Number__c;
+        if (trip.Contact__c != null) {
+          List<Ticket__c> tickets = TicketRepository.getTicketsByFlightIdAndContactId(trip.Flight__c, trip.Contact__c);
+          if (!tickets.isEmpty()) {
+            for (Ticket__c ticket : tickets) {
+              result.ticketName = ticket.Name;
+              result.ticketNumber = ticket.Ticket_Number__c;
+            }
+          }
         }
       }
     }
