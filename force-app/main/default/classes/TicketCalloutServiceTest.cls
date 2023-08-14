@@ -1,5 +1,5 @@
 @IsTest
-private class TicketControllerTest {
+public with sharing class TicketCalloutServiceTest {
   @TestSetup
   static void setupTestData() {
     List<Contact> contacts = TestDataFactory.createContacts(1);

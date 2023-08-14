@@ -1,4 +1,4 @@
-public with sharing class TicketController {
+public with sharing class TicketCalloutService {
   @future(callout=true)
   public static void sendMessageToExternalAPI(Set<Id> ticketIds) {
     List<Ticket__c> tickets = TicketRepository.getTicketsByIds(ticketIds);
