@@ -24,6 +24,7 @@ export default class FlightSearch extends LightningElement {
     sortDirection = 'asc';
     sortedBy;
     isLoading = false;
+    isButtonActive = true;
 
     itemsPerPage = 5;
     currentPage = 1;
@@ -43,6 +44,7 @@ export default class FlightSearch extends LightningElement {
         if (data) {
             this.flights = data.map(flight => ({ ...flight, isBooked: flight.isBooked || false }));
             this.updatePagination();
+            this.updateFlightsBookingStatus(this.isButtonActive); 
         } else if (error) {
             console.error('Error fetching available flights:', error);
         }
@@ -53,7 +55,8 @@ export default class FlightSearch extends LightningElement {
         this.wiredIsTripBookedFlightResult = result;
         const { data, error } = result;
         if (data !== undefined) {
-            this.updateFlightsBookingStatus(data);
+            this.isButtonActive = data;
+            this.updateFlightsBookingStatus(this.isButtonActive);
         } else if (error) {
             refreshApex(this.wiredFlightsResult);
             this.updateFlightsBookingStatus(false);

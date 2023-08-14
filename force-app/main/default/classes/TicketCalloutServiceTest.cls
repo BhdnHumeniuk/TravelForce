@@ -15,7 +15,7 @@ public with sharing class TicketCalloutServiceTest {
     Set<Id> ticketIds = new Set<Id>{ tickets[0].Id };
 
     Test.startTest();
-    TicketController.sendMessageToExternalAPI(ticketIds);
+    TicketCalloutService.sendMessageToExternalAPI(ticketIds);
     Test.stopTest();
   }
 }
