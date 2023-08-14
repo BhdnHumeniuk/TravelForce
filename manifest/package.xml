@@ -38,7 +38,7 @@
 		<name>CustomField</name>
 	</types>
 	<types>
-		<members>Confirmation_ticket_setting__c</members>
+		<members>Confirmation_Ticket_Setting__c</members>
 		<members>Flight__c</members>
 		<members>Ticket__c</members>
 		<members>Trip__c</members>
