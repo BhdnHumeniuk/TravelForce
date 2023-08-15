@@ -2,7 +2,7 @@
 
 ## Overview
 The TravelForce Trip Management Salesforce DX project aims to streamline the trip planning process for TravelForce employees and enhance the customer experience. This project involves creating custom Lightning Web Components (LWC) that will be integrated into the Salesforce interface. The LWCs will enable users to manage trips efficiently, select suitable flights, and automate booking processes. The solution will improve the organization's trip management capabilities while ensuring scalability and flexibility for future enhancements.
-- Short video of my solution: https://drive.google.com/file/d/1iBGTXRpPDLHql85GmD-y_65LvY2CoxCE/view?usp=sharing
+- Short video of my solution: https://drive.google.com/file/d/1xsyNaIwE6lSJOQ3RqglURJk0e8DIQMuT/view?usp=sharing
 
 ## Components and Functionality
 ### Flight Search Component
