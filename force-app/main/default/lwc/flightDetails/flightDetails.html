@@ -1,0 +1,38 @@
+<template>
+    <template if:true={flightDetails}>
+        <lightning-card>
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-var-m-around_medium slds-theme_shade"> 
+                        <lightning-card title="Flight Details" icon-name="custom:custom20">
+                        <lightning-record-form
+                            record-id={flightDetails.flightId}
+                            object-api-name="Flight__c"
+                            layout-type="Full"
+                            columns="2"
+                        ></lightning-record-form>
+                    </lightning-card>
+                    </div>
+                </div>
+                <div class="slds-col">
+                    <div class="slds-var-m-around_medium slds-theme_shade"> 
+                        <lightning-card title="Ticket Details" icon-name="custom:custom45">
+                        <lightning-record-form
+                            record-id={flightDetails.ticketId}
+                            object-api-name="Ticket__c"
+                            layout-type="Full"
+                            columns="2"
+                        ></lightning-record-form>
+                    </lightning-card>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-var-p-horizontal_small slds-var-m-top_medium">
+                <lightning-button label="Cancel Booking" title="Cancel Booking" onclick={handleCancelBookingFlight}></lightning-button>
+            </div>
+        </lightning-card>
+        <div if:true={isLoading} class="slds-var-m-vertical_medium">
+            <lightning-spinner alternative-text="loading" size="large"></lightning-spinner>
+        </div>
+    </template>
+</template>

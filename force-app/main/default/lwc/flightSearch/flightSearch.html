@@ -1,0 +1,38 @@
+<template>
+  <lightning-card title="Available Flights">
+          <div class="slds-m-around_medium">
+              <lightning-input
+                  label="Search"
+                  type="search"
+                  value={searchKeyword}
+                  onchange={handleSearch}
+              ></lightning-input>
+          </div>
+          <div class="slds-m-around_medium">
+              <lightning-datatable
+                  key-field="Id"
+                  data={visibleFlights}
+                  columns={columns}
+                  onrowaction={handleFlightSelect}
+                  onsort={handleSort}
+                  sorted-direction={sortDirection}
+                  sorted-by={sortedBy}
+                  hide-checkbox-column
+              ></lightning-datatable>
+          </div>
+            <div class="slds-m-around_medium">
+              <c-pagination
+                  records={flights}
+                  record-size={itemsPerPage}
+                  onupdate={handleUpdatePagination}
+              ></c-pagination>
+              <c-pagination-helper 
+              record-size={itemsPerPage}
+              onrecordsizechange={handleRecordSizeChange}
+          ></c-pagination-helper>
+          </div>
+          <div if:true={isLoading} class="slds-var-m-vertical_medium">
+              <lightning-spinner alternative-text="loading" size="large"></lightning-spinner>
+          </div>
+  </lightning-card>
+</template>
