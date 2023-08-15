@@ -1,5 +1,6 @@
 import { LightningElement, api, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
+import { RefreshEvent } from 'lightning/refresh';
 import getFlightDetails from '@salesforce/apex/FlightController.getFlightDetails';
 import cancelBookingFlight from '@salesforce/apex/FlightController.cancelBookingFlight';
 
@@ -40,6 +41,7 @@ export default class FlightDetails extends LightningElement {
                 refreshApex(this.wiredFlightDetailsResult);
                 this.flightDetails = undefined;
                 publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingCancel', payload: true});
+                this.dispatchEvent(new RefreshEvent());
                 showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
             })
             .catch(error => {

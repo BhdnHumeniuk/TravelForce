@@ -1,5 +1,7 @@
 import { LightningElement, api, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
+import { RefreshEvent } from 'lightning/refresh';
+
 import getAvailableFlightsWithKeyword from '@salesforce/apex/FlightController.getAvailableFlightsWithKeyword';
 import bookFlight from '@salesforce/apex/FlightController.bookFlight';
 import isTripBookedFlight from '@salesforce/apex/TripController.isTripBookedFlight';
@@ -79,6 +81,7 @@ export default class FlightSearch extends LightningElement {
                 this.updateFlightsBookingStatus(true);
                 refreshApex(this.wiredFlightsResult);
                 publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+                this.dispatchEvent(new RefreshEvent());
                 showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
             })
             .catch(error => {
