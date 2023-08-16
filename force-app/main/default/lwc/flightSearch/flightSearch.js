@@ -26,7 +26,7 @@ export default class FlightSearch extends LightningElement {
     sortDirection = 'asc';
     sortedBy;
     isLoading = false;
-    isButtonActive = true;
+    isTripBooked;
 
     itemsPerPage = 5;
     currentPage = 1;
@@ -36,7 +36,27 @@ export default class FlightSearch extends LightningElement {
     messageContext;
 
     connectedCallback() {
+        this.fetchTripStatus();
         this.subscribeToMessageChannel();        
+    }
+
+    fetchTripStatus(){
+        isTripBookedFlight({ tripId: this.recordId })
+            .then((data) => {
+                    console.log(data);
+                    this.isTripBooked = data;
+                    this.updateFlightsBookingStatus();
+            })
+            .catch((error) => {
+                console.error('Error fetching Trip status:', error.message);
+            });
+    }
+
+    updateFlightsBookingStatus() {
+        this.flights = this.flights.map(flight => ({
+            ...flight,
+            isBooked: this.isTripBooked
+        }));
     }
 
     @wire(getAvailableFlightsWithKeyword, { recordId: '$recordId', searchKeyword: '$searchKeyword' })
@@ -44,33 +64,14 @@ export default class FlightSearch extends LightningElement {
         this.wiredFlightsResult = result;
         const { data, error } = result;
         if (data) {
-            this.flights = data.map(flight => ({ ...flight, isBooked: flight.isBooked || false }));
+            this.flights = data.map(flight => ({
+                ...flight,
+                isBooked: this.isTripBooked 
+            }));
             this.updatePagination();
-            this.updateFlightsBookingStatus(this.isButtonActive); 
         } else if (error) {
-            console.error('Error fetching available flights:', error);
+            console.error('Error fetching available flights:', error.message);
         }
-    }
-
-    @wire(isTripBookedFlight, { tripId: '$recordId' })
-    wiredIsTripBookedFlight(result) {
-        this.wiredIsTripBookedFlightResult = result;
-        const { data, error } = result;
-        if (data !== undefined) {
-            this.isButtonActive = data;
-            this.updateFlightsBookingStatus(this.isButtonActive);
-        } else if (error) {
-            refreshApex(this.wiredFlightsResult);
-            this.updateFlightsBookingStatus(false);
-            console.error('Error fetching trip booking status:', error);
-        }
-    }    
-
-    updateFlightsBookingStatus(forceStatus) {
-        this.flights = this.flights.map(flight => ({
-            ...flight,
-            isBooked: forceStatus !== undefined ? forceStatus : (this.isTripBooked || flight.isBooked || false)
-        }));
     }
     
     handleFlightSelect(event) {
@@ -78,14 +79,16 @@ export default class FlightSearch extends LightningElement {
         const selectedFlightId = event.detail.row.Id;
         bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
             .then(() => {
-                this.updateFlightsBookingStatus(true);
                 refreshApex(this.wiredFlightsResult);
-                publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
                 this.dispatchEvent(new RefreshEvent());
+                publish(this.messageContext, MESSAGE_CHANNEL, {type: 'FlightBookingSuccess', payload: true});
+                this.isTripBooked = true;
+                this.updateFlightsBookingStatus(); 
+                // this.fetchTripStatus();
                 showSuccessMessage('Success', 'The flight has been successfully booked to the trip.');
             })
             .catch(error => {
-                console.error('Error booking flight:', error);
+                console.error('Error booking flight:', error.message);
                 showErrorMessage('Error', 'You have already booked this flight. Please press "Cancel Booking" and try again.');
             })
             .finally(() => {
@@ -154,8 +157,11 @@ export default class FlightSearch extends LightningElement {
             MESSAGE_CHANNEL,
             (message) => {
                 if (message.type === 'FlightBookingCancel') {
-                    refreshApex(this.wiredFlightsResult);
-                    this.updateFlightsBookingStatus(false);
+                    
+                    this.isTripBooked = false;
+                    this.updateFlightsBookingStatus()
+                    refreshApex(this.wiredFlightsResult);;
+                    // this.fetchTripStatus();
                 }
             }
         );
