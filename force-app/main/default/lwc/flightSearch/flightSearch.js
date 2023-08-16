@@ -10,8 +10,8 @@ import { publish, subscribe, MessageContext } from 'lightning/messageService';
 import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
 import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
-const columns = [
-    { label: 'Flight Name', fieldName: 'Name', type: 'text', sortable: true },
+const columns = [    
+    { label: 'Flight Name', fieldName: 'flightId', type: 'url', typeAttributes: { label: { fieldName: 'flightName' }, target: '_blank', tooltip: 'View Product' }, sortable: true },
     { label: 'Flight Number', fieldName: 'Flight_Number__c', type: 'text', sortable: true },
     { label: 'Start', fieldName: 'Start__c', type: 'date', sortable: true },
     { label: 'Action', type: 'button', typeAttributes: { label: 'Book', name: 'book', disabled: { fieldName: 'isBooked' } } },
@@ -43,7 +43,6 @@ export default class FlightSearch extends LightningElement {
     fetchTripStatus(){
         isTripBookedFlight({ tripId: this.recordId })
             .then((data) => {
-                    console.log(data);
                     this.isTripBooked = data;
                     this.updateFlightsBookingStatus();
             })
@@ -66,6 +65,8 @@ export default class FlightSearch extends LightningElement {
         if (data) {
             this.flights = data.map(flight => ({
                 ...flight,
+                flightName: flight.Name,
+                flightId: `/lightning/r/Flight__c/${flight.Id}/view`,
                 isBooked: this.isTripBooked 
             }));
             this.updatePagination();
