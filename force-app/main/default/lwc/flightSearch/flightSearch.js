@@ -11,7 +11,7 @@ import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService_
 import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
 const columns = [    
-    { label: 'Flight Name', fieldName: 'flightId', type: 'url', typeAttributes: { label: { fieldName: 'flightName' }, target: '_blank', tooltip: 'View Product' }, sortable: true },
+    { label: 'Flight Name', fieldName: 'flightId', type: 'url', typeAttributes: { label: { fieldName: 'flightName' }, target: '_blank', tooltip: 'View Flight' }, sortable: true },
     { label: 'Flight Number', fieldName: 'Flight_Number__c', type: 'text', sortable: true },
     { label: 'Start', fieldName: 'Start__c', type: 'date', sortable: true },
     { label: 'Action', type: 'button', typeAttributes: { label: 'Book', name: 'book', disabled: { fieldName: 'isBooked' } } },
@@ -66,7 +66,7 @@ export default class FlightSearch extends LightningElement {
             this.flights = data.map(flight => ({
                 ...flight,
                 flightName: flight.Name,
-                flightId: `/lightning/r/Flight__c/${flight.Id}/view`,
+                flightId: "/" + flight.Id,
                 isBooked: this.isTripBooked 
             }));
             this.updatePagination();
