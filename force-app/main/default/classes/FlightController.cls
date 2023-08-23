@@ -28,14 +28,34 @@ public with sharing class FlightController {
   @AuraEnabled
   public static void cancelBookingFlight(Id tripId) {
     try {
-      TripRepository.cancelBookingFlightByTripId(tripId);
+      Trip__c trip = TripRepository.getAndValidateTrip(tripId);
+      Flight__c bookedFlight = FlightRepository.getAndValidateBookedFlight(trip.Flight__c);
+
+      List<Trip__c> tripsToUpdate = new List<Trip__c>();
+      List<Ticket__c> ticketsToUpdate = new List<Ticket__c>();
+
+      TripRepository.cancelTripBooking(trip, tripsToUpdate, bookedFlight, ticketsToUpdate);
+
+      if (!tripsToUpdate.isEmpty()) {
+        TripRepository.updateTrips(tripsToUpdate);
+      }
+
+      if (!ticketsToUpdate.isEmpty()) {
+        TicketRepository.updateTickets(ticketsToUpdate);
+      }
     } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
+      throw new AuraHandledException('An error occurred: ' + e.getMessage());
     }
   }
 
   @AuraEnabled(cacheable=true)
   public static FlightDetailsWrapper getFlightDetails(Id tripId) {
     return FlightRepository.getFlightDetailsByTripId(tripId);
+  }
+
+  @future(callout=true)
+  private static void sendMessage(String reply) {
+    TelegramUtility.Message message = new TelegramUtility.Message('275517799', reply);
+    TelegramUtility.sendMessage(message);
   }
 }

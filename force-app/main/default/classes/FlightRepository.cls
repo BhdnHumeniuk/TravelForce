@@ -67,4 +67,12 @@ public with sharing class FlightRepository {
 
     return result;
   }
+
+  public static Flight__c getAndValidateBookedFlight(Id flightId) {
+    Flight__c bookedFlight = FlightRepository.getFlightsByIds(new Set<Id>{ flightId })[0];
+    if (bookedFlight == null) {
+      throw new AuraHandledException('Invalid booked flight data.');
+    }
+    return bookedFlight;
+  }
 }
