@@ -11,18 +11,6 @@ public with sharing class TripRepository {
     return trip;
   }
 
-  public static void cancelTripBooking(Trip__c trip, List<Trip__c> tripsToUpdate, Flight__c bookedFlight, List<Ticket__c> ticketsToUpdate) {
-    trip.Flight__c = null;
-    trip.Status__c = 'Flight search';
-    tripsToUpdate.add(trip);
-
-    List<Ticket__c> bookedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
-    for (Ticket__c ticket : bookedTickets) {
-      ticket.Contact__c = null;
-      ticketsToUpdate.add(ticket);
-    }
-  }
-
   public static void updateTrips(List<Trip__c> trips) {
     try {
       update trips;
