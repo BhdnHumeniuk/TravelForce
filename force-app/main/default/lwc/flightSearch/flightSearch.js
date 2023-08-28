@@ -3,7 +3,7 @@ import { refreshApex } from '@salesforce/apex';
 import { RefreshEvent } from 'lightning/refresh';
 
 import getAvailableFlightsWithKeyword from '@salesforce/apex/FlightController.getAvailableFlightsWithKeyword';
-import bookFlight from '@salesforce/apex/FlightController.bookFlight';
+import changeStatusTripToBook from '@salesforce/apex/TripController.changeStatusTripToBook';
 import isTripBookedFlight from '@salesforce/apex/TripController.isTripBookedFlight';
 
 import { publish, subscribe, MessageContext } from 'lightning/messageService';
@@ -78,7 +78,7 @@ export default class FlightSearch extends LightningElement {
     handleFlightSelect(event) {
         this.isLoading = true;
         const selectedFlightId = event.detail.row.Id;
-        bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
+        changeStatusTripToBook({ tripId: this.recordId, flightId: selectedFlightId })
             .then(() => {
                 refreshApex(this.wiredFlightsResult);
                 this.dispatchEvent(new RefreshEvent());

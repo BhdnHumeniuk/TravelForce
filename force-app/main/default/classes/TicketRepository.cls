@@ -7,7 +7,7 @@ public with sharing class TicketRepository {
     return [SELECT Id, Name, Contact__c, Contact__r.Name FROM Ticket__c WHERE Flight__c = :flightId AND Contact__c = NULL];
   }
 
-  public static List<Ticket__c> getTicketsByFlightIdAndContactId(Id flightId, Id contactId) {
+  public static Ticket__c getTicketsByFlightIdAndContactId(Id flightId, Id contactId) {
     return [SELECT Id, Name, Ticket_Number__c, Contact__c FROM Ticket__c WHERE Flight__c = :flightId AND Contact__c = :contactId LIMIT 1];
   }
 

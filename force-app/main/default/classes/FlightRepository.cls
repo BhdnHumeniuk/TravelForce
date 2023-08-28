@@ -10,8 +10,12 @@ public with sharing class FlightRepository {
     ];
   }
 
-  public static List<Flight__c> getFlightsByIds(Set<Id> flightId) {
-    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id IN :flightId];
+  public static List<Flight__c> getFlightsByIds(Set<Id> flightIds) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id IN :flightIds];
+  }
+
+  public static Flight__c getFlightById(Id flightId) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id = :flightId LIMIT 1];
   }
 
   public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
@@ -42,11 +46,11 @@ public with sharing class FlightRepository {
     return result;
   }
 
-  public static Flight__c getAndValidateBookedFlight(Id flightId) {
-    Flight__c bookedFlight = FlightRepository.getFlightsByIds(new Set<Id>{ flightId })[0];
-    if (bookedFlight == null) {
-      throw new AuraHandledException('Invalid booked flight data.');
-    }
-    return bookedFlight;
-  }
+  // public static Flight__c getAndValidateBookedFlight(Id flightId) {
+  //   Flight__c bookedFlight = FlightRepository.getFlightsByIds(new Set<Id>{ flightId })[0];
+  //   if (bookedFlight == null) {
+  //     throw new AuraHandledException('Invalid booked flight data.');
+  //   }
+  //   return bookedFlight;
+  // }
 }
