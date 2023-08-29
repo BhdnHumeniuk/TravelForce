@@ -12,6 +12,7 @@ public class TicketTriggerHandler implements ITriggerHandler {
   }
 
   public void beforeDelete(List<sObject> oldList, Map<Id, sObject> oldMap) {
+    //need to book another ticket
   }
 
   public void afterDelete(List<sObject> oldList, Map<Id, sObject> oldMap) {

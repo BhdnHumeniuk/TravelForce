@@ -23,7 +23,7 @@ public with sharing class FlightController {
       for (Trip__c trip : trips) {
         Flight__c flight = FlightRepository.getFlightById(trip.Flight__c);
 
-        List<Ticket__c> availableTickets = TicketRepository.getAvailableTicketsByFlightId(flight.Id);
+        List<Ticket__c> availableTickets = TicketRepository.getTicketsByFlightId(flight.Id);
 
         if (!availableTickets.isEmpty()) {
           Ticket__c availableTicket = availableTickets[0];
@@ -47,16 +47,18 @@ public with sharing class FlightController {
 
   public static void cancelBookingFlight(List<Trip__c> trips) {
     List<Ticket__c> ticketsToUpdate = new List<Ticket__c>();
-    System.debug('Trips: ' + JSON.serialize(trips));
+    System.debug('trips ' + trips);
     try {
       for (Trip__c trip : trips) {
         Flight__c bookedFlight = FlightRepository.getFlightById(trip.Flight__c);
-        Ticket__c bookedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
-        if (bookedTickets != null) {
-          bookedTickets.Contact__c = null;
-          ticketsToUpdate.add(bookedTickets);
-        } else {
-          throw new AuraHandledException('No available booked tickets.');
+        System.debug('bookedFlight ' + bookedFlight);
+        try {
+          Ticket__c bookedTicket = TicketRepository.getTicketByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
+          System.debug('bookedTicket ' + bookedTicket);
+          bookedTicket.Contact__c = null;
+          ticketsToUpdate.add(bookedTicket);
+        } catch (QueryException e) {
+          System.debug('No available booked tickets for trip with ID: ' + trip.Id);
         }
       }
       if (!ticketsToUpdate.isEmpty()) {

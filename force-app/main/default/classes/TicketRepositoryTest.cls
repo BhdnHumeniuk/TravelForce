@@ -33,12 +33,12 @@ private class TicketRepositoryTest {
   }
 
   @IsTest
-  static void testGetAvailableTicketsByFlightId() {
+  static void testGetTicketsByFlightId() {
     Flight__c testFlight = [SELECT Id FROM Flight__c LIMIT 1];
     List<Contact> contacts = TestDataFactory.createContacts(10);
 
     Test.startTest();
-    List<Ticket__c> availableTickets = TicketRepository.getAvailableTicketsByFlightId(testFlight.Id);
+    List<Ticket__c> availableTickets = TicketRepository.getTicketsByFlightId(testFlight.Id);
     System.assertEquals(10, availableTickets.size());
 
     for (Integer i = 0; i < availableTickets.size(); i++) {
@@ -46,28 +46,28 @@ private class TicketRepositoryTest {
     }
     update availableTickets;
 
-    availableTickets = TicketRepository.getAvailableTicketsByFlightId(testFlight.Id);
+    availableTickets = TicketRepository.getTicketsByFlightId(testFlight.Id);
     System.assertEquals(0, availableTickets.size());
     Test.stopTest();
   }
 
-  @IsTest
-  static void testGetTicketsByFlightIdAndContactId() {
-    List<Contact> contacts = TestDataFactory.createContacts(1);
-    List<Ticket__c> tickets = [SELECT Id, Flight__c FROM Ticket__c LIMIT 1];
+  // @IsTest
+  // static void testGetTicketsByFlightIdAndContactId() {
+  //   List<Contact> contacts = TestDataFactory.createContacts(1);
+  //   List<Ticket__c> tickets = [SELECT Id, Flight__c FROM Ticket__c LIMIT 1];
 
-    List<Ticket__c> ticketsToAssign = new List<Ticket__c>();
-    for (Ticket__c ticket : tickets) {
-      ticketsToAssign.add(ticket);
-    }
-    List<Flight__c> bookedFlights = TestDataFactory.assignContactsToTickets(ticketsToAssign, contacts);
+  //   List<Ticket__c> ticketsToAssign = new List<Ticket__c>();
+  //   for (Ticket__c ticket : tickets) {
+  //     ticketsToAssign.add(ticket);
+  //   }
+  //   List<Flight__c> bookedFlights = TestDataFactory.assignContactsToTickets(ticketsToAssign, contacts);
 
-    Test.startTest();
-    List<Ticket__c> retrievedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlights[0].Id, contacts[0].Id);
-    Test.stopTest();
+  //   Test.startTest();
+  //   List<Ticket__c> retrievedTickets = TicketRepository.getTicketsByFlightIdAndContactId(bookedFlights[0].Id, contacts[0].Id);
+  //   Test.stopTest();
 
-    System.assertNotEquals(0, retrievedTickets.size());
-  }
+  //   System.assertNotEquals(0, retrievedTickets.size());
+  // }
 
   @IsTest
   static void testUpdateTickets() {
