@@ -47,14 +47,11 @@ public with sharing class FlightController {
 
   public static void cancelBookingFlight(List<Trip__c> trips) {
     List<Ticket__c> ticketsToUpdate = new List<Ticket__c>();
-    System.debug('trips ' + trips);
     try {
       for (Trip__c trip : trips) {
         Flight__c bookedFlight = FlightRepository.getFlightById(trip.Flight__c);
-        System.debug('bookedFlight ' + bookedFlight);
         try {
           Ticket__c bookedTicket = TicketRepository.getTicketByFlightIdAndContactId(bookedFlight.Id, trip.Contact__c);
-          System.debug('bookedTicket ' + bookedTicket);
           bookedTicket.Contact__c = null;
           ticketsToUpdate.add(bookedTicket);
         } catch (QueryException e) {

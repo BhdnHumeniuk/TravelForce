@@ -12,11 +12,11 @@ public class FlightTriggerHandler implements ITriggerHandler {
   }
 
   public void beforeDelete(List<sObject> oldList, Map<Id, sObject> oldMap) {
-    List<Trip__c> oldTripList = (List<Trip__c>) oldList;
+    List<Flight__c> oldFlightList = (List<Flight__c>) oldList;
     List<Ticket__c> allTicketsToDelete = new List<Ticket__c>();
 
-    for (Trip__c trip : oldTripList) {
-      List<Ticket__c> ticketsToDelete = TicketRepository.getTicketsByFlightId(trip.Flight__c);
+    for (Flight__c flight : oldFlightList) {
+      List<Ticket__c> ticketsToDelete = TicketRepository.getTicketsByFlightId(flight.Id);
       for (Ticket__c ticket : ticketsToDelete) {
         allTicketsToDelete.add(ticket);
       }
