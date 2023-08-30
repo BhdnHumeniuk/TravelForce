@@ -29,38 +29,43 @@ private class FlightControllerTest {
     }
   }
 
-  // @IsTest
-  // static void testBookFlight_Success() {
-  //   Test.setMock(HttpCalloutMock.class, new HttpCalloutMockTest());
-  //   List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
-  //   List<Contact> newContacts = TestDataFactory.createContacts(1);
-  //   Ticket__c freeTickets = TestDataFactory.createTickets(1, freeFlights)[0];
-  //   Trip__c newTrip = TestDataFactory.createTrips(1, newContacts)[0];
+  @IsTest
+  static void testBookFlight_Success() {
+    Test.setMock(HttpCalloutMock.class, new HttpCalloutMockTest());
+    List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
+    List<Contact> newContacts = TestDataFactory.createContacts(1);
+    Ticket__c freeTicket = TestDataFactory.createTickets(1, freeFlights)[0];
+    Trip__c newTrip = TestDataFactory.createTrips(1, newContacts)[0];
+    newTrip.Flight__c = freeFlights[0].Id;
+    newTrip.Status__c = 'Flight search';
+    update newTrip;
 
-  //   Test.startTest();
-  //   FlightController.bookFlight(newTrip.Id, freeFlights[0].Id);
-  //   Test.stopTest();
+    Test.startTest();
+    FlightController.bookFlight(new List<Trip__c>{ newTrip });
+    Test.stopTest();
 
-  //   Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :newTrip.Id];
-  //   System.assertEquals(freeFlights[0].Id, updatedTrip.Flight__c);
-  //   System.assertEquals('Flight booked', updatedTrip.Status__c);
-  // }
+    Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :newTrip.Id];
+    System.assertEquals(freeFlights[0].Id, updatedTrip.Flight__c);
+    System.assertEquals('Flight booked', updatedTrip.Status__c);
+  }
 
-  // @IsTest
-  // static void testCancelBookingFlight() {
-  //   Trip__c trip = [SELECT Id FROM Trip__c LIMIT 1];
-  //   trip.Flight__c = TestDataFactory.createFlights(1)[0].Id;
-  //   trip.Status__c = 'Flight booked';
-  //   update trip;
+  @IsTest
+  static void testCancelBookingFlight() {
+    List<Flight__c> bookedFlights = TestDataFactory.createFlights(1);
+    List<Contact> contacts = TestDataFactory.createContacts(1);
+    Trip__c trip = TestDataFactory.createTrips(1, contacts)[0];
+    trip.Flight__c = bookedFlights[0].Id;
+    trip.Status__c = 'Flight booked';
+    update trip;
 
-  //   Test.startTest();
-  //   FlightController.cancelBookingFlight(trip.Id);
-  //   Test.stopTest();
+    Test.startTest();
+    FlightController.cancelBookingFlight(new List<Trip__c>{ trip });
+    Test.stopTest();
 
-  //   Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :trip.Id];
-  //   System.assertEquals(null, updatedTrip.Flight__c);
-  //   System.assertEquals('Flight search', updatedTrip.Status__c);
-  // }
+    Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :trip.Id];
+    System.assertEquals(null, updatedTrip.Flight__c);
+    System.assertEquals('Flight search', updatedTrip.Status__c);
+  }
 
   @IsTest
   static void testGetFlightDetails() {

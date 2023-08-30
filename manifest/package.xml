@@ -45,6 +45,7 @@
 		<members>Confirmation_Ticket_Setting__c</members>
 		<members>Flight__c</members>
 		<members>Ticket__c</members>
+		<members>TripUpdatedEvent__e</members>
 		<members>Trip__c</members>
 		<name>CustomObject</name>
 	</types>

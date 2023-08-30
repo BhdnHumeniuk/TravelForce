@@ -7,7 +7,9 @@ import changeStatusTripToBook from '@salesforce/apex/TripController.changeStatus
 import isTripBookedFlight from '@salesforce/apex/TripController.isTripBookedFlight';
 
 import { publish, subscribe, MessageContext } from 'lightning/messageService';
+import { subscribe as empSubscribe } from 'lightning/empApi'; 
 import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
+
 import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
 const columns = [    
@@ -35,9 +37,13 @@ export default class FlightSearch extends LightningElement {
     @wire(MessageContext)
     messageContext;
 
+    subscription = {};
+    @api channelName = '/event/TripUpdatedEvent__e';
+
     connectedCallback() {
         this.fetchTripStatus();
-        this.subscribeToMessageChannel();        
+        this.subscribeToMessageChannel();   
+        this.subscribeToTripUpdatedEvent();     
     }
 
     fetchTripStatus(){
@@ -160,11 +166,23 @@ export default class FlightSearch extends LightningElement {
                 if (message.type === 'FlightBookingCancel') {
                     
                     this.isTripBooked = false;
-                    this.updateFlightsBookingStatus()
-                    refreshApex(this.wiredFlightsResult);;
+                    this.updateFlightsBookingStatus();
+                    refreshApex(this.wiredFlightsResult);
                     // this.fetchTripStatus();
                 }
             }
         );
+    }
+
+    subscribeToTripUpdatedEvent() {
+        const messageCallback =  (response) => {
+                if (response.data.payload.TripId__c === this.recordId) {
+                refreshApex(this.wiredFlightsResult);
+            }
+        };
+        
+        empSubscribe(this.channelName, -1, messageCallback).then(response => {
+            this.empSubscription = response;
+        });
     }
 }

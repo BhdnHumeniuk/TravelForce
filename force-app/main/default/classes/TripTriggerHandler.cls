@@ -22,6 +22,11 @@ public with sharing class TripTriggerHandler implements ITriggerHandler {
           tripsToCancel.add(oldTrip);
         }
       }
+      if (newTrip.Preferred_Trip_Start__c != oldTrip.Preferred_Trip_Start__c) {
+        TripUpdatedEvent__e event = new TripUpdatedEvent__e(TripId__c = newTrip.Id, NewPreferredTripStart__c = newTrip.Preferred_Trip_Start__c);
+        EventBus.publish(event);
+        System.debug('Send Platform Event' + event);
+      }
     }
 
     if (!tripsToBook.isEmpty()) {
