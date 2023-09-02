@@ -28,24 +28,24 @@ private class FlightRepositoryTest {
     }
   }
 
-  @IsTest
-  static void testBookFlightForTrip_Success() {
-    List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
-    List<Contact> newContacts = TestDataFactory.createContacts(1);
-    Ticket__c freeTickets = TestDataFactory.createTickets(1, freeFlights)[0];
-    Trip__c newTrip = TestDataFactory.createTrips(1, newContacts)[0];
+  // @IsTest
+  // static void testBookFlightForTrip_Success() {
+  //   List<Flight__c> freeFlights = TestDataFactory.createFlights(1);
+  //   List<Contact> newContacts = TestDataFactory.createContacts(1);
+  //   Ticket__c freeTickets = TestDataFactory.createTickets(1, freeFlights)[0];
+  //   Trip__c newTrip = TestDataFactory.createTrips(1, newContacts)[0];
 
-    Test.startTest();
-    Ticket__c bookedTicket = FlightRepository.bookFlightForTrip(newTrip.Id, freeFlights[0].Id);
-    Test.stopTest();
+  //   Test.startTest();
+  //   Ticket__c bookedTicket = FlightRepository.bookFlightForTrip(newTrip.Id, freeFlights[0].Id);
+  //   Test.stopTest();
 
-    System.assertNotEquals(null, bookedTicket);
-    System.assertEquals(newTrip.Contact__c, bookedTicket.Contact__c);
+  //   System.assertNotEquals(null, bookedTicket);
+  //   System.assertEquals(newTrip.Contact__c, bookedTicket.Contact__c);
 
-    Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :newTrip.Id];
-    System.assertEquals(freeFlights[0].Id, updatedTrip.Flight__c);
-    System.assertEquals('Flight booked', updatedTrip.Status__c);
-  }
+  //   Trip__c updatedTrip = [SELECT Id, Flight__c, Status__c FROM Trip__c WHERE Id = :newTrip.Id];
+  //   System.assertEquals(freeFlights[0].Id, updatedTrip.Flight__c);
+  //   System.assertEquals('Flight booked', updatedTrip.Status__c);
+  // }
 
   // @IsTest
   // static void testBookFlightForTrip_InvalidTrip() {

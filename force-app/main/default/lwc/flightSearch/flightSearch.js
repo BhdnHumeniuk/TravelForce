@@ -3,15 +3,17 @@ import { refreshApex } from '@salesforce/apex';
 import { RefreshEvent } from 'lightning/refresh';
 
 import getAvailableFlightsWithKeyword from '@salesforce/apex/FlightController.getAvailableFlightsWithKeyword';
-import bookFlight from '@salesforce/apex/FlightController.bookFlight';
+import changeStatusTripToBook from '@salesforce/apex/TripController.changeStatusTripToBook';
 import isTripBookedFlight from '@salesforce/apex/TripController.isTripBookedFlight';
 
 import { publish, subscribe, MessageContext } from 'lightning/messageService';
+import { subscribe as empSubscribe } from 'lightning/empApi'; 
 import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
+
 import { showSuccessMessage, showErrorMessage } from "c/showMessageHelper";
 
 const columns = [    
-    { label: 'Flight Name', fieldName: 'flightId', type: 'url', typeAttributes: { label: { fieldName: 'flightName' }, target: '_blank', tooltip: 'View Product' }, sortable: true },
+    { label: 'Flight Name', fieldName: 'flightId', type: 'url', typeAttributes: { label: { fieldName: 'flightName' }, target: '_blank', tooltip: 'View Flight' }, sortable: true },
     { label: 'Flight Number', fieldName: 'Flight_Number__c', type: 'text', sortable: true },
     { label: 'Start', fieldName: 'Start__c', type: 'date', sortable: true },
     { label: 'Action', type: 'button', typeAttributes: { label: 'Book', name: 'book', disabled: { fieldName: 'isBooked' } } },
@@ -35,9 +37,13 @@ export default class FlightSearch extends LightningElement {
     @wire(MessageContext)
     messageContext;
 
+    subscription = {};
+    @api channelName = '/event/TripUpdatedEvent__e';
+
     connectedCallback() {
         this.fetchTripStatus();
-        this.subscribeToMessageChannel();        
+        this.subscribeToMessageChannel();   
+        this.subscribeToTripUpdatedEvent();     
     }
 
     fetchTripStatus(){
@@ -66,7 +72,7 @@ export default class FlightSearch extends LightningElement {
             this.flights = data.map(flight => ({
                 ...flight,
                 flightName: flight.Name,
-                flightId: `/lightning/r/Flight__c/${flight.Id}/view`,
+                flightId: "/" + flight.Id,
                 isBooked: this.isTripBooked 
             }));
             this.updatePagination();
@@ -78,7 +84,7 @@ export default class FlightSearch extends LightningElement {
     handleFlightSelect(event) {
         this.isLoading = true;
         const selectedFlightId = event.detail.row.Id;
-        bookFlight({ tripId: this.recordId, flightId: selectedFlightId })
+        changeStatusTripToBook({ tripId: this.recordId, flightId: selectedFlightId })
             .then(() => {
                 refreshApex(this.wiredFlightsResult);
                 this.dispatchEvent(new RefreshEvent());
@@ -160,11 +166,23 @@ export default class FlightSearch extends LightningElement {
                 if (message.type === 'FlightBookingCancel') {
                     
                     this.isTripBooked = false;
-                    this.updateFlightsBookingStatus()
-                    refreshApex(this.wiredFlightsResult);;
+                    this.updateFlightsBookingStatus();
+                    refreshApex(this.wiredFlightsResult);
                     // this.fetchTripStatus();
                 }
             }
         );
+    }
+
+    subscribeToTripUpdatedEvent() {
+        const messageCallback =  (response) => {
+                if (response.data.payload.TripId__c === this.recordId) {
+                refreshApex(this.wiredFlightsResult);
+            }
+        };
+        
+        empSubscribe(this.channelName, -1, messageCallback).then(response => {
+            this.empSubscription = response;
+        });
     }
 }
