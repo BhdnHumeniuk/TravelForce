@@ -10,34 +10,12 @@ public with sharing class FlightRepository {
     ];
   }
 
-  public static List<Flight__c> getFlightsByIds(Set<Id> flightId) {
-    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id IN :flightId];
+  public static List<Flight__c> getFlightsByIds(Set<Id> flightIds) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id IN :flightIds];
   }
 
-  public static Ticket__c bookFlightForTrip(Id tripId, Id flightId) {
-    Set<Id> tripIds = new Set<Id>{ tripId };
-    Set<Id> flights = new Set<Id>{ flightId };
-    Trip__c trip = TripRepository.getTripsByIds(tripIds)[0];
-    Flight__c flight = getFlightsByIds(flights)[0];
-
-    if (trip != null && flight != null && String.isBlank(trip.Flight__c) && trip.Status__c == 'Flight search') {
-      Ticket__c availableTicket = TicketRepository.getAvailableTicketsByFlightId(flightId)[0];
-
-      if (availableTicket != null) {
-        availableTicket.Contact__c = trip.Contact__c;
-        TicketRepository.updateTickets(new List<Ticket__c>{ availableTicket });
-
-        trip.Flight__c = flightId;
-        trip.Status__c = 'Flight booked';
-        TripRepository.updateTrips(new List<Trip__c>{ trip });
-
-        return availableTicket;
-      } else {
-        throw new AuraHandledException('No available tickets for booking.');
-      }
-    } else {
-      throw new AuraHandledException('Invalid trip or flight data for booking.');
-    }
+  public static Flight__c getFlightById(Id flightId) {
+    return [SELECT Id, Name, Start__c, Flight_Number__c FROM Flight__c WHERE Id = :flightId LIMIT 1];
   }
 
   public static FlightDetailsWrapper getFlightDetailsByTripId(Id tripId) {
@@ -67,4 +45,12 @@ public with sharing class FlightRepository {
 
     return result;
   }
+
+  // public static Flight__c getAndValidateBookedFlight(Id flightId) {
+  //   Flight__c bookedFlight = FlightRepository.getFlightsByIds(new Set<Id>{ flightId })[0];
+  //   if (bookedFlight == null) {
+  //     throw new AuraHandledException('Invalid booked flight data.');
+  //   }
+  //   return bookedFlight;
+  // }
 }

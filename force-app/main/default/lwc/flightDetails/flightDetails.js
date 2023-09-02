@@ -2,7 +2,7 @@ import { LightningElement, api, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import { RefreshEvent } from 'lightning/refresh';
 import getFlightDetails from '@salesforce/apex/FlightController.getFlightDetails';
-import cancelBookingFlight from '@salesforce/apex/FlightController.cancelBookingFlight';
+import changeStatusTripToFree from '@salesforce/apex/TripController.changeStatusTripToFree';
 
 import { publish, subscribe, MessageContext } from 'lightning/messageService';
 import MESSAGE_CHANNEL from '@salesforce/messageChannel/LightningMessageService__c';
@@ -36,7 +36,7 @@ export default class FlightDetails extends LightningElement {
 
     handleCancelBookingFlight() {
         this.isLoading = true;
-        cancelBookingFlight({ tripId: this.recordId })
+        changeStatusTripToFree({ tripId: this.recordId })
             .then(() => {
                 refreshApex(this.wiredFlightDetailsResult);
                 this.flightDetails = undefined;
@@ -45,7 +45,7 @@ export default class FlightDetails extends LightningElement {
                 showSuccessMessage('Success', 'The flight has been successfully rejected to the trip.');
             })
             .catch(error => {
-                console.error('Error rejecting flight:', error);
+                console.error('Error rejecting flight:', error.message);
                 showErrorMessage('Error', 'Failed to reject the flight to the trip.');
             })
             .finally(() => {

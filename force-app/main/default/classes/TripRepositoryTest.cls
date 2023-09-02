@@ -10,57 +10,42 @@ private class TripRepositoryTest {
   }
 
   @IsTest
-  static void testCancelBookingFlightByTripId() {
-    Trip__c bookedTrip = [SELECT Id, Flight__c, Contact__c, Status__c FROM Trip__c WHERE Status__c = 'Flight booked' LIMIT 1];
-    System.assertNotEquals(null, bookedTrip);
-
-    Test.startTest();
-    TripRepository.cancelBookingFlightByTripId(bookedTrip.Id);
-    Test.stopTest();
-
-    Trip__c canceledTrip = [SELECT Id, Flight__c, Contact__c, Status__c FROM Trip__c WHERE Id = :bookedTrip.Id];
-    System.assertEquals(null, canceledTrip.Flight__c);
-    System.assertEquals('Flight search', canceledTrip.Status__c);
-
-    List<Ticket__c> canceledTickets = [SELECT Id, Contact__c FROM Ticket__c WHERE Flight__c = :bookedTrip.Flight__c];
-    for (Ticket__c canceledTicket : canceledTickets) {
-      System.assertEquals(null, canceledTicket.Contact__c);
+  static void testGetTripsByIds() {
+    Set<Id> tripIds = new Set<Id>();
+    List<Trip__c> trips = [SELECT Id FROM Trip__c LIMIT 5];
+    for (Trip__c trip : trips) {
+      tripIds.add(trip.Id);
     }
+
+    List<Trip__c> retrievedTrips = TripRepository.getTripsByIds(tripIds);
+
+    System.assertEquals(5, retrievedTrips.size());
   }
 
-  // @IsTest
-  // static void testCancelBookingFlightByTripId_InvalidFlight() {
-  //   Trip__c bookedTrip = [SELECT Id, Flight__c, Contact__c, Status__c FROM Trip__c WHERE Status__c = 'Flight booked' LIMIT 1];
-  //   System.debug('bookedTrip: ' + bookedTrip);
-  //   System.assertNotEquals(null, bookedTrip);
+  @IsTest
+  static void testGetTripsByFlightId() {
+    List<Flight__c> flights = [SELECT Id FROM Flight__c LIMIT 1];
+    Id flightId = flights[0].Id;
 
-  //   bookedTrip.Flight__c = null;
-  //   update bookedTrip;
-  //   System.debug('AfterUpdateBookedTrip: ' + bookedTrip);
+    List<Trip__c> retrievedTrips = TripRepository.getTripsByFlightId(flightId);
 
-  //   Test.startTest();
-  //   try {
-  //     TripRepository.cancelBookingFlightByTripId(bookedTrip.Id);
-  //     System.assert(false, 'Expected exception was not thrown');
-  //   } catch (AuraHandledException e) {
-  //     System.debug('ERROR: ' + e.getMessage());
-  //     System.assert(e.getMessage().contains('Invalid booked flight data.'));
-  //   }
-  //   Test.stopTest();
-  // }
+    System.assertNotEquals(0, retrievedTrips.size());
+  }
 
-  // @IsTest
-  // static void testCancelBookingFlightByTripId_InvalidTrip() {
-  //   Trip__c trip = [SELECT Id, Flight__c, Contact__c, Status__c FROM Trip__c WHERE Status__c = 'Flight search' LIMIT 1];
-  //   System.assertNotEquals(null, trip);
+  @IsTest
+  static void testUpdateTrips() {
+    List<Trip__c> tripsToUpdate = [SELECT Id, Status__c FROM Trip__c LIMIT 5];
+    for (Trip__c trip : tripsToUpdate) {
+      trip.Status__c = 'Flight booked';
+    }
 
-  //   Test.startTest();
-  //   try {
-  //     TripRepository.cancelBookingFlightByTripId(trip.Id);
-  //     System.assert(false, 'Expected exception was not thrown');
-  //   } catch (AuraHandledException e) {
-  //     System.assert(e.getMessage().contains('Invalid trip data for flight rejection.'));
-  //   }
-  //   Test.stopTest();
-  // }
+    Test.startTest();
+    TripRepository.updateTrips(tripsToUpdate);
+    Test.stopTest();
+
+    List<Trip__c> updatedTrips = [SELECT Id, Status__c FROM Trip__c WHERE Id IN :tripsToUpdate];
+    for (Trip__c updatedTrip : updatedTrips) {
+      System.assertEquals('Flight booked', updatedTrip.Status__c);
+    }
+  }
 }
