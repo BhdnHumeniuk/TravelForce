@@ -35,4 +35,3 @@ public with sharing class FlightDetailsWrapper {
 //   this.error = error;
 //   console.log('ERROR: ' + this.error);
 // }
-

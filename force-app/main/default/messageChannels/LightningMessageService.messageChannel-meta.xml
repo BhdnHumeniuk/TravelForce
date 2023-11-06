@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
-    <masterLabel>Lightning Message Channel</masterLabel>
+    <description>Message channel for communication between FlightDetails and
+        FlightSearch components</description>
     <isExposed>true</isExposed>
-    <description>
-        Message channel for communication between FlightDetails and
-        FlightSearch components
-    </description>
+    <masterLabel>Lightning Message Channel</masterLabel>
 </LightningMessageChannel>
