@@ -80,8 +80,8 @@ The TravelForce Trip Management Salesforce DX project aims to enhance trip plann
 The handleSearchTermChange function is used to react to changes in the value of the search input field. We purposefully introduce a 300 millisecond delay when updating the searchTerm reactive property. If an update is pending, we cancel it and reschedule a new one in 300 ms. This delay reduces the number of Apex calls when the user is typing letters to form a word. Each new letter triggers a call to handleSearchTermChange but ideally, searchBears is only called once when the user has finished typing. This technique is called debouncing.
 
 import { LightningElement, wire } from 'lwc';
-import ursusResources from '@salesforce/resourceUrl/ursus_park';
-/\*_ BearController.searchBears(searchTerm) Apex method _/
+import ursusResources from '@salesforce/resourceUrl/ursus\*park';
+/\*\* BearController.searchBears(searchTerm) Apex method \_/
 import searchBears from '@salesforce/apex/BearController.searchBears';
 export default class BearList extends LightningElement {
 searchTerm = '';
@@ -104,4 +104,28 @@ this.searchTerm = searchTerm;
 get hasResults() {
 return (this.bears.data.length > 0);
 }
+}
+
+## Open record
+
+    handleBearView(event) {
+    	// Get bear record id from bearview event
+    	const bearId = event.detail;
+    	// Navigate to bear record page
+    	this[NavigationMixin.Navigate]({
+    		type: 'standard__recordPage',
+    		attributes: {
+    			recordId: bearId,
+    			objectApiName: 'Bear__c',
+    			actionName: 'view',
+    		},
+    	});
+    }
+
+## Add unsubscribe after LWC
+
+disconnectedCallback() {
+// Unsubscribe from BearListUpdate\_\_c message
+unsubscribe(this.subscription);
+this.subscription = null;
 }
