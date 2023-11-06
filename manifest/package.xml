@@ -39,6 +39,10 @@
 	</types>
 	<types>
 		<members>*</members>
+		<name>CustomLabels</name>
+	</types>
+	<types>
+		<members>*</members>
 		<name>CustomMetadata</name>
 	</types>
 	<types>
@@ -72,5 +76,5 @@
 		<members>TravelForceAPI_Inspector</members>
 		<name>RemoteSiteSetting</name>
 	</types>
-	<version>55.0</version>
+	<version>58.0</version>
 </Package>
